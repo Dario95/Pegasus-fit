@@ -40,6 +40,9 @@ import { CAT, EQUIPO_CASA, EjercicioCatalogo, WgerService } from './wger.service
  *      ~10 % del peso, el gasto cae ~10-15 % más de lo que predice la masa.
  * [15] Kreitzman et al. (1992) Am J Clin Nutr — el glucógeno se almacena con 3-4 g
  *      de agua: la caída rápida de la primera semana es agua, no grasa.
+ * [16] Pontzer et al. (2016) Curr Biol — gasto energético restringido: el cuerpo
+ *      compensa parte del ejercicio adicional reduciendo otros gastos; junto con
+ *      la erosión de adherencia, el déficit efectivo decae con los meses.
  */
 
 const STORAGE_KEY = 'pegasus.plan';
@@ -248,10 +251,14 @@ export class PlanService {
         const perdidoPct = Math.max(0, (a.pesoKg - peso) / a.pesoKg);
         const adaptacion = 1 - Math.min(0.1, perdidoPct);
         const tdeeActual = bmrDe(peso) * factorActividad * adaptacion;
-        // Recalibración mensual: igual que pide el plan (nuevo peso → nuevas kcal),
-        // manteniendo el déficit del ritmo elegido. Sin esto la curva plachea sola [13].
+        // Recalibración mensual (nuevo peso → nuevas kcal) PERO con compensación
+        // realista [16]: el gasto total se restringe (NEAT cae, el cuerpo ahorra) y
+        // la adherencia se erosiona — el déficit efectivo decae ~4 %/mes, piso 55 %.
+        // Esto es lo que dobla la curva en los datos reales, no solo la masa perdida.
         if (s % 4 === 1 && s > 1) {
-          const deficit = Math.min((pctSemana * peso * 7700) / 7, tdeeActual * 0.25);
+          const mes = Math.floor(s / 4);
+          const efectividad = Math.max(0.55, 1 - 0.04 * mes);
+          const deficit = Math.min((pctSemana * peso * 7700) / 7, tdeeActual * 0.25) * efectividad;
           kcalActual = Math.max(piso, Math.round(tdeeActual - deficit));
         }
         delta = ((kcalActual - tdeeActual) * 7) / 7700; // negativo en déficit

@@ -32,9 +32,21 @@
         <text [attr.x]="margen.izq - 6" [attr.y]="g.y + 3" text-anchor="end" font-size="9" fill="#6b7280">{{ g.etiqueta }}</text>
       }
 
-      <!-- Área suave + línea de proyección (discontinua: estimación) -->
+      <!-- Guía recta fantasma: lo que prometería una app ingenua -->
+      @if (puntos(); as pts) {
+        <line [attr.x1]="pts[0].x" [attr.y1]="pts[0].y"
+          [attr.x2]="pts[pts.length - 1].x" [attr.y2]="pts[pts.length - 1].y"
+          stroke="#3a3b44" stroke-width="1.5" stroke-dasharray="2 5" />
+      }
+
+      <!-- Área suave + curva realista (discontinua: estimación) -->
       <path [attr.d]="area()" fill="#ea580c" opacity="0.08" />
       <path [attr.d]="linea()" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round" />
+
+      <!-- Anotación del escalón inicial (agua + glucógeno) -->
+      @if (puntos().length > 3 && dieta().cambioSemanalKg! < 0) {
+        <text [attr.x]="puntos()[1].x + 5" [attr.y]="puntos()[1].y + 12" font-size="8.5" fill="#9ca3af" font-style="italic">↓ agua y glucógeno</text>
+      }
 
       <!-- Extremos: hoy y meta (anillo de superficie 2px) -->
       @if (puntos(); as pts) {
@@ -48,6 +60,7 @@
 
         <!-- Etiquetas de tiempo -->
         <text [attr.x]="pts[0].x" [attr.y]="H - 8" font-size="9" fill="#6b7280">hoy</text>
+        <text [attr.x]="(W + margen.izq - margen.der) / 2" [attr.y]="H - 8" text-anchor="middle" font-size="8" fill="#4b5563">··· recta ingenua vs curva real</text>
         <text [attr.x]="pts[pts.length - 1].x" [attr.y]="H - 8" text-anchor="end" font-size="9" fill="#6b7280">
           {{ formatoCorto(pts[pts.length - 1].fecha) }}
         </text>
