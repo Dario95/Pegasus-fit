@@ -41,13 +41,17 @@
       </button>
     </header>
 
-    <!-- Video de técnica (mudo, en loop) -->
-    @if (ej.video) {
-      <video class="w-full aspect-video rounded-2xl object-cover bg-panel" [src]="ej.video"
-        [poster]="ej.imagen ?? ''" autoplay loop muted playsinline></video>
-    } @else if (ej.imagen) {
-      <img class="w-full aspect-video rounded-2xl object-cover bg-panel" [src]="ej.imagen" [alt]="ej.nombre" />
-    }
+    <!-- Video de técnica (mudo, en loop). El media del catálogo es cuadrado
+         y de 180×180 px: se muestra cerca de su tamaño nativo para que se vea
+         nítido (estirarlo lo vuelve borroso) -->
+    <div class="mx-auto h-[24vh] min-h-40 max-h-52 aspect-square">
+      @if (ej.video) {
+        <video class="w-full h-full rounded-2xl object-cover bg-panel" [src]="ej.video"
+          [poster]="ej.imagen ?? ''" autoplay loop muted playsinline></video>
+      } @else if (ej.imagen) {
+        <img class="w-full h-full rounded-2xl object-cover bg-panel" [src]="ej.imagen" [alt]="ej.nombre" />
+      }
+    </div>
 
     <div class="flex items-start justify-between gap-3 mt-3">
       <div class="min-w-0">
