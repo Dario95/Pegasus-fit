@@ -8,6 +8,7 @@ interface ExerciseInfoResult {
   translations: { language: number; name: string }[];
   images: { image: string; is_main: boolean }[];
   videos: { video: string }[];
+  equipment: { id: number }[];
 }
 
 export interface EjercicioCatalogo {
@@ -15,7 +16,11 @@ export interface EjercicioCatalogo {
   nombre: string;
   imagen: string | null;
   video: string | null;
+  equipo: number[];
 }
+
+/** Equipo apto para entrenar en casa (fixtures wger): peso corporal, mancuerna, banda, kettlebell. */
+export const EQUIPO_CASA = new Set([7, 3, 11, 10]);
 
 /** IDs de categoría wger (fixtures estándar). */
 export const CAT = {
@@ -57,6 +62,7 @@ export class WgerService {
           nombre: (es ?? en ?? r.translations[0])?.name ?? `Ejercicio ${r.id}`,
           imagen: this.rel(principal?.image),
           video: this.rel(r.videos[0]?.video),
+          equipo: (r.equipment ?? []).map((e) => e.id),
         };
       })
       .filter((e) => e.imagen);

@@ -2,7 +2,14 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Icono } from '../../core/icono';
-import { Anamnesis as AnamnesisModel, Experiencia, Objetivo, Sexo } from '../../core/models';
+import {
+  Anamnesis as AnamnesisModel,
+  DuracionSesion,
+  Entorno,
+  Experiencia,
+  Objetivo,
+  Sexo,
+} from '../../core/models';
 import { PlanService } from '../../core/plan.service';
 
 /** Cribado de seguridad basado en PAR-Q+ (spec §1.2d): cualquier "sí" deriva a sala. */
@@ -16,6 +23,18 @@ const PREGUNTAS_SALUD: { id: string; texto: string }[] = [
   { id: 'otra', texto: '¿Tienes otra condición médica por la que debieras consultar antes de ejercitarte?' },
 ];
 
+/** Motivaciones: el "porqué" emocional detrás del objetivo. */
+const MOTIVACIONES = [
+  { id: 'energia', icono: 'bolt', texto: 'Tener más energía' },
+  { id: 'confianza', icono: 'destellos', texto: 'Sentirme bien conmigo' },
+  { id: 'salud', icono: 'corazon', texto: 'Cuidar mi salud' },
+  { id: 'fuerza', icono: 'tendencia', texto: 'Ser más fuerte' },
+  { id: 'estres', icono: 'ciencia', texto: 'Manejar el estrés' },
+  { id: 'reto', icono: 'trofeo', texto: 'Demostrarme que puedo' },
+];
+
+const TOTAL_PASOS = 5;
+
 @Component({
   selector: 'app-anamnesis',
   imports: [FormsModule, Icono],
@@ -27,7 +46,11 @@ export class Anamnesis {
   private router = inject(Router);
 
   readonly preguntas = PREGUNTAS_SALUD;
-  readonly paso = signal(0); // 0 salud · 1 datos · 2 metas
+  readonly listaMotivaciones = MOTIVACIONES;
+  readonly totalPasos = TOTAL_PASOS;
+
+  // 0 salud · 1 tu porqué · 2 sobre ti · 3 tu ritmo · 4 experiencia
+  readonly paso = signal(0);
   readonly generando = signal(false);
   readonly error = signal<string | null>(null);
 
@@ -36,6 +59,10 @@ export class Anamnesis {
   );
   readonly bloqueado = computed(() => Object.values(this.salud()).some((v) => v === true));
   readonly saludCompleta = computed(() => Object.values(this.salud()).every((v) => v !== null));
+
+  readonly objetivo = signal<Objetivo | null>(null);
+  readonly motivaciones = signal<string[]>([]);
+  readonly porqueCompleto = computed(() => this.objetivo() !== null);
 
   readonly sexo = signal<Sexo | null>(null);
   readonly edad = signal<number | null>(null);
@@ -49,12 +76,14 @@ export class Anamnesis {
       (this.tallaCm() ?? 0) >= 130 && (this.tallaCm() ?? 0) <= 220,
   );
 
-  readonly objetivo = signal<Objetivo | null>(null);
   readonly diasSemana = signal<2 | 3 | 4 | 5 | null>(null);
-  readonly experiencia = signal<Experiencia | null>(null);
-  readonly metasCompletas = computed(
-    () => this.objetivo() !== null && this.diasSemana() !== null && this.experiencia() !== null,
+  readonly duracionSesion = signal<DuracionSesion | null>(null);
+  readonly entorno = signal<Entorno | null>(null);
+  readonly ritmoCompleto = computed(
+    () => this.diasSemana() !== null && this.duracionSesion() !== null && this.entorno() !== null,
   );
+
+  readonly experiencia = signal<Experiencia | null>(null);
 
   responderSalud(id: string, valor: boolean): void {
     this.salud.update((s) => ({ ...s, [id]: valor }));
@@ -62,6 +91,10 @@ export class Anamnesis {
 
   reiniciarSalud(): void {
     this.salud.set(Object.fromEntries(PREGUNTAS_SALUD.map((p) => [p.id, null])));
+  }
+
+  toggleMotivacion(id: string): void {
+    this.motivaciones.update((m) => (m.includes(id) ? m.filter((x) => x !== id) : [...m, id]));
   }
 
   atras(): void {
@@ -73,7 +106,7 @@ export class Anamnesis {
   }
 
   async generar(): Promise<void> {
-    if (!this.metasCompletas() || this.generando()) return;
+    if (this.experiencia() === null || this.generando()) return;
     this.generando.set(true);
     this.error.set(null);
 
@@ -86,7 +119,10 @@ export class Anamnesis {
       pesoKg: this.pesoKg()!,
       tallaCm: this.tallaCm()!,
       objetivo: this.objetivo()!,
+      motivaciones: this.motivaciones(),
       diasSemana: this.diasSemana()!,
+      duracionSesion: this.duracionSesion()!,
+      entorno: this.entorno()!,
       experiencia: this.experiencia()!,
       fecha: new Date().toISOString(),
     };

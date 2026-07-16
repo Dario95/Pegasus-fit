@@ -1,7 +1,12 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'rutina' },
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () => import('./features/landing/landing').then((m) => m.Landing),
+    title: 'Pegasus Fit — Tu plan de entrenamiento y dieta',
+  },
   {
     path: 'rutina',
     loadComponent: () => import('./features/rutina/rutina').then((m) => m.Rutina),

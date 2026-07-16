@@ -50,3 +50,40 @@
       focus:outline-2 focus:outline-acento focus:border-transparent;
   }
 }
+
+/* ── Animaciones de scroll (landing, estilo Apple) ─────────────────────── */
+
+.pre-aparece {
+  opacity: 0;
+  transform: translateY(32px) scale(0.98);
+  transition:
+    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.aparecido {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes flotar {
+  0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+  50% { transform: translateY(-14px) rotate(-1.5deg); }
+}
+
+/* Marco de teléfono para mockups */
+.telefono {
+  @apply relative mx-auto rounded-[2.6rem] border-4 border-panel2 bg-fondo
+    shadow-[0_24px_80px_rgba(0,0,0,0.55)] overflow-hidden;
+  width: min(290px, 78vw);
+  aspect-ratio: 9 / 18.5;
+}
+.telefono::before {
+  content: '';
+  @apply absolute top-2 left-1/2 -translate-x-1/2 w-24 h-5 rounded-full bg-panel2 z-10;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pre-aparece { transition: none; opacity: 1; transform: none; }
+  .anim-flotar { animation: none !important; }
+}

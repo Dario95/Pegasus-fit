@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Anamnesis, DiaPlan, Dieta, EjercicioPlan, Plan } from './models';
-import { CAT, EjercicioCatalogo, WgerService } from './wger.service';
+import { CAT, EQUIPO_CASA, EjercicioCatalogo, WgerService } from './wger.service';
 
 /**
  * Motor de plan v2 — basado en evidencia. Referencias completas en docs/REFERENCIAS.md.
@@ -126,6 +126,25 @@ export class PlanService {
     return plan;
   }
 
+  /**
+   * Ajusta el número de ejercicios del día a la duración de sesión preferida:
+   * sesiones cortas → menos ejercicios (se preservan las categorías grandes,
+   * que van primero en cada plantilla); largas → un ejercicio extra.
+   */
+  private ajustarCuotas(cuotas: [number, number][], duracion: Anamnesis['duracionSesion']): [number, number][] {
+    const copia: [number, number][] = cuotas.map((c) => [...c] as [number, number]);
+    const total = () => copia.reduce((s, [, n]) => s + n, 0);
+    if (duracion === '30_45') {
+      while (total() > 4) {
+        const ultima = [...copia].reverse().find(([, n]) => n > 0)!;
+        ultima[1] -= 1;
+      }
+    } else if (duracion === '60_90') {
+      copia[0][1] += 1;
+    }
+    return copia.filter(([, n]) => n > 0);
+  }
+
   private async generarRutina(a: Anamnesis): Promise<DiaPlan[]> {
     const plantilla = PLANTILLAS[a.diasSemana];
     const series = SERIES[a.experiencia];
@@ -135,8 +154,13 @@ export class PlanService {
 
     for (const dia of plantilla) {
       const ejercicios: EjercicioPlan[] = [];
-      for (const [categoria, cantidad] of dia.cuotas) {
-        const catalogo = await this.wger.porCategoria(categoria);
+      for (const [categoria, cantidad] of this.ajustarCuotas(dia.cuotas, a.duracionSesion)) {
+        let catalogo = await this.wger.porCategoria(categoria);
+        if (a.entorno === 'casa') {
+          // Solo equipo de casa; los ejercicios sin equipo mapeado (máquinas, cables…) se excluyen
+          const enCasa = catalogo.filter((e) => e.equipo.length > 0 && e.equipo.every((id) => EQUIPO_CASA.has(id)));
+          if (enCasa.length >= cantidad) catalogo = enCasa;
+        }
         for (const ej of this.elegir(catalogo, cantidad, usados)) {
           ejercicios.push({
             wgerId: ej.id,
