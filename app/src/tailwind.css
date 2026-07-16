@@ -30,7 +30,7 @@
 
   /* Botón primario = Burning Gold (manual §4: "botones primarios y acentos heroicos") */
   .btn-primario {
-    @apply block w-full min-h-14 mt-6 rounded-2xl border-none text-[#14100b]
+    @apply block w-full min-h-14 mt-6 rounded-2xl border-none text-[#0a192f]
       text-lg font-bold transition-transform duration-75 active:scale-[0.98]
       disabled:opacity-35 disabled:active:scale-100
       bg-gradient-to-r from-acento to-[#ffc15e]

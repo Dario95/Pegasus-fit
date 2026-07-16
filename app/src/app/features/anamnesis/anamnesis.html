@@ -166,8 +166,12 @@
 
       <p class="text-apagado mt-5 mb-2 text-sm">¿Dónde vas a entrenar?</p>
       <div class="flex gap-2.5">
-        <button class="pildora !text-center" [class.pildora-activa]="entorno() === 'gimnasio'" (click)="entorno.set('gimnasio')">🏢 En el gym</button>
-        <button class="pildora !text-center" [class.pildora-activa]="entorno() === 'casa'" (click)="entorno.set('casa')">🏠 En casa</button>
+        <button class="pildora flex items-center justify-center gap-2" [class.pildora-activa]="entorno() === 'gimnasio'" (click)="entorno.set('gimnasio')">
+          <app-icono nombre="edificio" clase="w-5 h-5 text-cosmo shrink-0" /> En el gym
+        </button>
+        <button class="pildora flex items-center justify-center gap-2" [class.pildora-activa]="entorno() === 'casa'" (click)="entorno.set('casa')">
+          <app-icono nombre="casa" clase="w-5 h-5 text-cosmo shrink-0" /> En casa
+        </button>
       </div>
 
       <button class="btn-primario" [disabled]="!ritmoCompleto()" (click)="paso.set(4)">Continuar</button>
