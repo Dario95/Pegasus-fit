@@ -18,11 +18,6 @@ export const routes: Routes = [
     title: 'Mi Dieta',
   },
   {
-    path: 'acceso',
-    loadComponent: () => import('./features/acceso/acceso').then((m) => m.Acceso),
-    title: 'Acceso',
-  },
-  {
     path: 'anamnesis',
     loadComponent: () => import('./features/anamnesis/anamnesis').then((m) => m.Anamnesis),
     title: 'Evaluación inicial',

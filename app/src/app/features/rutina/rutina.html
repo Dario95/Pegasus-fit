@@ -11,13 +11,45 @@
 
     <header class="flex justify-between items-start mb-4">
       <div>
-        <h2 class="text-2xl font-bold">Tu plan</h2>
+        <h2 class="text-2xl font-bold">Tu entrenamiento</h2>
         <p class="text-apagado text-sm capitalize">
           {{ etiquetaObjetivo[p.anamnesis.objetivo] }} · {{ p.anamnesis.diasSemana }} días/semana · {{ p.anamnesis.experiencia }}
         </p>
       </div>
       <button class="bg-transparent border-none text-cosmo min-h-11 text-sm" (click)="regenerar()">Rehacer</button>
     </header>
+
+    <!-- Racha y semana actual -->
+    <section class="tarjeta p-4 mb-4">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <p class="text-2xl font-extrabold leading-tight">
+            🔥 {{ asistencia.rachaSemanas() }}
+            <span class="text-sm font-normal text-apagado">{{ asistencia.rachaSemanas() === 1 ? 'semana' : 'semanas' }} de racha</span>
+          </p>
+          <p class="text-xs text-apagado mt-0.5">
+            Esta semana: <strong class="text-texto">{{ asistencia.sesionesSemana() }}/{{ asistencia.objetivoSemanal() }}</strong> sesiones
+          </p>
+        </div>
+        <button
+          class="shrink-0 min-h-12 px-4 rounded-2xl font-bold text-sm transition-transform active:scale-[0.97]"
+          [class]="asistencia.entrenoHoy()
+            ? 'bg-cosmo-suave border border-cosmo text-cosmo'
+            : 'bg-gradient-to-r from-cosmo to-[#5eefff] text-[#0a192f] border-none'"
+          (click)="asistencia.toggleHoy()">
+          {{ asistencia.entrenoHoy() ? '✓ Entrenaste hoy' : 'Entrené hoy' }}
+        </button>
+      </div>
+      <div class="flex gap-1.5 mt-3">
+        @for (d of asistencia.ultimos7(); track $index) {
+          <div class="flex-1 flex flex-col items-center gap-1">
+            <div class="w-full h-2 rounded-full"
+              [class]="d.entrenado ? 'bg-cosmo' : d.esHoy ? 'bg-borde border border-cosmo/50' : 'bg-borde'"></div>
+            <span class="text-[9px]" [class]="d.esHoy ? 'text-cosmo font-bold' : 'text-tenue'">{{ d.etiqueta }}</span>
+          </div>
+        }
+      </div>
+    </section>
 
     <section class="tarjeta p-5 mb-5 bg-gradient-to-br from-panel to-panel2">
       <h3 class="flex items-center gap-2 text-sm text-apagado font-medium">

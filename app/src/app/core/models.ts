@@ -44,7 +44,12 @@ export interface DiaPlan {
 export interface Dieta {
   bmr: number;
   tdee: number;
-  kcalObjetivo: number;
+  kcalObjetivo: number; // promedio semanal
+  /** Desglose por tipo de día: entrenar "gana" las kcal de la sesión;
+   *  un día sin gym la ingesta baja para mantener el promedio. */
+  kcalEntrenamiento: number;
+  kcalDescanso: number;
+  costoSesionKcal: number;
   proteinaG: number;
   grasaG: number;
   carbohidratosG: number;

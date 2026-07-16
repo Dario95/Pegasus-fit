@@ -6,9 +6,28 @@
     </header>
 
     <section class="tarjeta p-5 mb-5 bg-gradient-to-br from-panel to-panel2">
-      <div class="text-4xl font-extrabold">
-        {{ p.dieta.kcalObjetivo }} <span class="text-base font-normal text-apagado">kcal / día</span>
+      <!-- kcal según el tipo de día: si no vas al gym, la ingesta baja -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="rounded-2xl border border-cosmo/40 bg-cosmo-suave p-3.5">
+          <p class="text-xs text-apagado flex items-center gap-1.5">
+            <app-icono nombre="bolt" clase="w-3.5 h-3.5 text-cosmo" /> Día de gym
+          </p>
+          <p class="text-3xl font-extrabold mt-1">{{ p.dieta.kcalEntrenamiento }}</p>
+          <p class="text-[11px] text-apagado">kcal</p>
+        </div>
+        <div class="rounded-2xl border border-borde bg-fondo/50 p-3.5">
+          <p class="text-xs text-apagado flex items-center gap-1.5">
+            <app-icono nombre="casa" clase="w-3.5 h-3.5" /> Día de descanso
+          </p>
+          <p class="text-3xl font-extrabold mt-1">{{ p.dieta.kcalDescanso }}</p>
+          <p class="text-[11px] text-apagado">kcal</p>
+        </div>
       </div>
+      <p class="text-xs text-tenue mt-3 leading-relaxed">
+        Tu sesión quema ~{{ p.dieta.costoSesionKcal }} kcal: un día sin gym, réstalas — recorta
+        sobre todo carbohidratos (~{{ (p.dieta.costoSesionKcal / 4).toFixed(0) }} g menos); la
+        proteína se mantiene igual todos los días.
+      </p>
       <div class="flex gap-3 my-3">
         <div class="flex-1 rounded-xl bg-fondo/60 p-2.5 text-center">
           <strong class="block text-lg">{{ p.dieta.proteinaG }}g</strong>
@@ -43,6 +62,26 @@
         <p class="text-xs text-tenue mt-2">{{ c.ejemplos }}</p>
       </section>
     }
+
+    <!-- Recetas con IA -->
+    <section class="tarjeta p-5 mt-5 mb-4">
+      <h3 class="flex items-center gap-2 text-sm text-apagado font-medium mb-1">
+        <app-icono nombre="destellos" clase="w-4 h-4 text-cosmo" /> Recetas de tu semana
+      </h3>
+      <p class="text-xs text-tenue mb-3">
+        Dinos qué alimentos tienes a mano y armamos un menú semanal que cuadre con tus macros.
+      </p>
+      <textarea class="campo !text-base !min-h-24 py-3" rows="3"
+        placeholder="ej: pollo, arroz, huevos, avena, guineo, atún, lentejas…"
+        [ngModel]="alimentos()" (ngModelChange)="alimentos.set($event)"></textarea>
+      <button class="btn-primario !mt-3" [disabled]="!alimentos().trim() || generandoRecetas()" (click)="sugerirRecetas()">
+        {{ generandoRecetas() ? 'Cocinando tu menú…' : 'Sugerir recetas con IA' }}
+      </button>
+      @if (errorRecetas()) { <p class="text-red-400 text-sm mt-3">{{ errorRecetas() }}</p> }
+      @if (recetas()) {
+        <div class="mt-4 rounded-2xl bg-fondo/50 border border-borde p-4 text-sm leading-relaxed whitespace-pre-wrap">{{ recetas() }}</div>
+      }
+    </section>
 
     <p class="flex items-center justify-center gap-1.5 text-xs text-tenue my-5 text-center">
       <app-icono nombre="ciencia" clase="w-3.5 h-3.5 shrink-0" />

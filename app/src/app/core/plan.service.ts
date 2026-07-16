@@ -43,11 +43,14 @@ import { CAT, EQUIPO_CASA, EjercicioCatalogo, WgerService } from './wger.service
  * [16] Pontzer et al. (2016) Curr Biol — gasto energético restringido: el cuerpo
  *      compensa parte del ejercicio adicional reduciendo otros gastos; junto con
  *      la erosión de adherencia, el déficit efectivo decae con los meses.
+ * [17] Ainsworth et al. (2011) Compendium of Physical Activities — entrenamiento
+ *      de fuerza ≈ 3.5-6 METs; usamos 4.5 para estimar el costo de la sesión y
+ *      derivar las kcal de día de entrenamiento vs día de descanso.
  */
 
 const STORAGE_KEY = 'pegasus.plan';
 /** Sube cuando cambie el cálculo de dieta/proyección: los planes guardados se migran solos. */
-const VERSION_MOTOR = 3;
+const VERSION_MOTOR = 4;
 
 interface DiaPlantilla {
   nombre: string;
@@ -386,10 +389,21 @@ export class PlanService {
     const carbohidratosG = Math.max(0, Math.round((kcal - proteinaG * 4 - grasaG * 9) / 4));
     const comidas = 4; // distribución de proteína ~0.4 g/kg por comida [11]
 
+    // Día de gym vs día de descanso [17]: la sesión cuesta ~4.5 MET × peso × horas.
+    // El promedio semanal se conserva: R = promedio − costo·d/7 ; E = R + costo.
+    const horasSesion = { '30_45': 0.62, '45_60': 0.87, '60_90': 1.25 }[a.duracionSesion ?? '45_60'];
+    const costoSesionKcal = Math.round(4.5 * a.pesoKg * horasSesion);
+    let kcalDescanso = Math.round(kcal - (costoSesionKcal * a.diasSemana) / 7);
+    kcalDescanso = Math.max(kcalDescanso, piso);
+    const kcalEntrenamiento = kcalDescanso + costoSesionKcal;
+
     return {
       bmr,
       tdee,
       kcalObjetivo: kcal,
+      kcalEntrenamiento,
+      kcalDescanso,
+      costoSesionKcal,
       proteinaG,
       grasaG,
       carbohidratosG,
