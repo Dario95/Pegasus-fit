@@ -6,6 +6,16 @@
   color: var(--color-texto);
 }
 
+.wordmark {
+  em {
+    font-style: normal;
+    background: linear-gradient(90deg, var(--color-acento), #fbbf24);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
 .tab {
   flex: 1;
   display: flex;

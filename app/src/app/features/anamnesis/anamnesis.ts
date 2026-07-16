@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Icono } from '../../core/icono';
 import { Anamnesis as AnamnesisModel, Experiencia, Objetivo, Sexo } from '../../core/models';
 import { PlanService } from '../../core/plan.service';
 
@@ -17,7 +18,7 @@ const PREGUNTAS_SALUD: { id: string; texto: string }[] = [
 
 @Component({
   selector: 'app-anamnesis',
-  imports: [FormsModule],
+  imports: [FormsModule, Icono],
   templateUrl: './anamnesis.html',
   styleUrl: './anamnesis.scss',
 })

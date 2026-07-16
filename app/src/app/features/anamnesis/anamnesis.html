@@ -11,7 +11,7 @@
   @if (paso() === 0) {
     @if (bloqueado()) {
       <section class="text-center pt-10">
-        <div class="text-5xl mb-4">💙</div>
+        <app-icono nombre="corazon" clase="w-14 h-14 mx-auto mb-4 text-acento" />
         <h2 class="text-2xl font-bold mb-3">Queremos cuidarte</h2>
         <p class="text-apagado leading-relaxed max-w-xs mx-auto mb-8">
           Por alguna de tus respuestas, preferimos que un instructor te evalúe en persona antes de
@@ -24,7 +24,7 @@
       <section>
         <h2 class="text-2xl font-bold">Antes de empezar, tu salud</h2>
         <p class="text-apagado mt-1 mb-4 text-sm">
-          Responde con honestidad — esto define si podemos asignarte rutina automática.
+          60 segundos que valen oro: esto define si podemos asignarte rutina automática con seguridad.
         </p>
         @for (p of preguntas; track p.id) {
           <div class="py-3.5 border-b border-panel2">
@@ -48,7 +48,8 @@
 
   @if (paso() === 1) {
     <section>
-      <h2 class="text-2xl font-bold mb-4">Sobre ti</h2>
+      <h2 class="text-2xl font-bold mb-1">Sobre ti</h2>
+      <p class="text-apagado text-sm mb-4">Con esto calculamos tus calorías y macros exactos.</p>
       <div class="flex gap-2.5 mb-2">
         <button class="pildora !text-center" [class.pildora-activa]="sexo() === 'masculino'" (click)="sexo.set('masculino')">Hombre</button>
         <button class="pildora !text-center" [class.pildora-activa]="sexo() === 'femenino'" (click)="sexo.set('femenino')">Mujer</button>
@@ -75,9 +76,15 @@
 
       <p class="text-apagado mt-4 mb-2 text-sm">¿Qué buscas lograr?</p>
       <div class="flex flex-col gap-2.5">
-        <button class="pildora" [class.pildora-activa]="objetivo() === 'hipertrofia'" (click)="objetivo.set('hipertrofia')">💪 Ganar músculo</button>
-        <button class="pildora" [class.pildora-activa]="objetivo() === 'perdida_grasa'" (click)="objetivo.set('perdida_grasa')">🔥 Perder grasa</button>
-        <button class="pildora" [class.pildora-activa]="objetivo() === 'acondicionamiento'" (click)="objetivo.set('acondicionamiento')">🫀 Acondicionamiento general</button>
+        <button class="pildora flex items-center gap-3" [class.pildora-activa]="objetivo() === 'hipertrofia'" (click)="objetivo.set('hipertrofia')">
+          <app-icono nombre="tendencia" clase="w-5 h-5 text-acento shrink-0" /> Ganar músculo
+        </button>
+        <button class="pildora flex items-center gap-3" [class.pildora-activa]="objetivo() === 'perdida_grasa'" (click)="objetivo.set('perdida_grasa')">
+          <app-icono nombre="fuego" clase="w-5 h-5 text-acento shrink-0" /> Perder grasa
+        </button>
+        <button class="pildora flex items-center gap-3" [class.pildora-activa]="objetivo() === 'acondicionamiento'" (click)="objetivo.set('acondicionamiento')">
+          <app-icono nombre="corazon" clase="w-5 h-5 text-acento shrink-0" /> Acondicionamiento general
+        </button>
       </div>
 
       <p class="text-apagado mt-5 mb-2 text-sm">¿Cuántos días a la semana puedes entrenar?</p>
@@ -90,16 +97,28 @@
 
       <p class="text-apagado mt-5 mb-2 text-sm">Tu experiencia con las pesas</p>
       <div class="flex flex-col gap-2.5">
-        <button class="pildora" [class.pildora-activa]="experiencia() === 'principiante'" (click)="experiencia.set('principiante')">🌱 Principiante <span class="text-apagado text-sm">· menos de 1 año</span></button>
-        <button class="pildora" [class.pildora-activa]="experiencia() === 'intermedio'" (click)="experiencia.set('intermedio')">🏋️ Intermedio <span class="text-apagado text-sm">· 1–3 años</span></button>
-        <button class="pildora" [class.pildora-activa]="experiencia() === 'avanzado'" (click)="experiencia.set('avanzado')">🦾 Avanzado <span class="text-apagado text-sm">· 3+ años</span></button>
+        <button class="pildora flex items-center gap-3" [class.pildora-activa]="experiencia() === 'principiante'" (click)="experiencia.set('principiante')">
+          <app-icono nombre="destellos" clase="w-5 h-5 text-acento shrink-0" />
+          Principiante <span class="text-apagado text-sm">· menos de 1 año</span>
+        </button>
+        <button class="pildora flex items-center gap-3" [class.pildora-activa]="experiencia() === 'intermedio'" (click)="experiencia.set('intermedio')">
+          <app-icono nombre="barras" clase="w-5 h-5 text-acento shrink-0" />
+          Intermedio <span class="text-apagado text-sm">· 1–3 años</span>
+        </button>
+        <button class="pildora flex items-center gap-3" [class.pildora-activa]="experiencia() === 'avanzado'" (click)="experiencia.set('avanzado')">
+          <app-icono nombre="trofeo" clase="w-5 h-5 text-acento shrink-0" />
+          Avanzado <span class="text-apagado text-sm">· 3+ años</span>
+        </button>
       </div>
 
       @if (error()) { <p class="text-red-400 mt-4">{{ error() }}</p> }
 
       <button class="btn-primario" [disabled]="!metasCompletas() || generando()" (click)="generar()">
-        {{ generando() ? 'Generando tu plan…' : 'Generar mi rutina y dieta' }}
+        {{ generando() ? 'Analizando 1,300+ ejercicios para ti…' : 'Crear mi plan personalizado' }}
       </button>
+      <p class="text-center text-xs text-tenue mt-3">
+        Rutina y dieta en segundos · diseñado con criterios de evidencia científica
+      </p>
     </section>
   }
 </div>

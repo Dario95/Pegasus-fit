@@ -1,9 +1,19 @@
+<header class="px-4 pt-3 pb-1">
+  <span class="wordmark text-xl font-black tracking-tight">PEGASUS<em>FIT</em></span>
+</header>
+
 <main class="flex-1 overflow-y-auto p-4">
   <router-outlet />
 </main>
 
 <nav class="flex border-t border-borde bg-panel pb-[env(safe-area-inset-bottom)]">
-  <a routerLink="/rutina" routerLinkActive="tab-activa" class="tab">🏋️<span>Rutina</span></a>
-  <a routerLink="/acceso" routerLinkActive="tab-activa" class="tab">🎟️<span>Acceso</span></a>
-  <a routerLink="/anamnesis" routerLinkActive="tab-activa" class="tab">📋<span>Evaluación</span></a>
+  <a routerLink="/rutina" routerLinkActive="tab-activa" class="tab">
+    <app-icono nombre="bolt" clase="w-6 h-6" /><span>Rutina</span>
+  </a>
+  <a routerLink="/acceso" routerLinkActive="tab-activa" class="tab">
+    <app-icono nombre="qr-code" clase="w-6 h-6" /><span>Acceso</span>
+  </a>
+  <a routerLink="/anamnesis" routerLinkActive="tab-activa" class="tab">
+    <app-icono nombre="clipboard" clase="w-6 h-6" /><span>Evaluación</span>
+  </a>
 </nav>

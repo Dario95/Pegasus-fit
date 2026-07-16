@@ -1,5 +1,14 @@
 <div class="max-w-xl mx-auto">
   @if (plan(); as p) {
+    @if (esNuevo()) {
+      <div class="flex items-center gap-3 rounded-2xl border border-acento/40 bg-acento-suave px-4 py-3 mb-4">
+        <app-icono nombre="check-circulo" clase="w-6 h-6 text-acento shrink-0" />
+        <p class="text-sm leading-snug">
+          <strong>Tu plan está listo.</strong> El mejor momento para empezar es tu próxima visita al gym.
+        </p>
+      </div>
+    }
+
     <header class="flex justify-between items-start mb-4">
       <div>
         <h2 class="text-2xl font-bold">Tu plan</h2>
@@ -11,7 +20,9 @@
     </header>
 
     <section class="tarjeta p-5 mb-5 bg-gradient-to-br from-panel to-panel2">
-      <h3 class="text-sm text-apagado font-medium">🍽️ Tu dieta diaria</h3>
+      <h3 class="flex items-center gap-2 text-sm text-apagado font-medium">
+        <app-icono nombre="pastel" clase="w-4 h-4" /> Tu combustible diario
+      </h3>
       <div class="text-4xl font-extrabold my-1">
         {{ p.dieta.kcalObjetivo }} <span class="text-base font-normal text-apagado">kcal</span>
       </div>
@@ -53,9 +64,7 @@
                 }
                 <div>
                   <p class="font-semibold leading-tight">{{ ej.nombre }}</p>
-                  <p class="text-apagado text-sm mt-1">
-                    {{ ej.series }} × {{ ej.reps }}
-                  </p>
+                  <p class="text-apagado text-sm mt-1">{{ ej.series }} × {{ ej.reps }}</p>
                   <p class="text-tenue text-xs mt-0.5">descanso {{ ej.descansoSeg }}s</p>
                 </div>
               </li>
@@ -65,19 +74,29 @@
       </section>
     }
 
-    <p class="text-center text-xs text-tenue my-5">
-      Plan generado con criterios de evidencia — ver <span class="text-apagado">docs/REFERENCIAS.md</span>
+    <p class="flex items-center justify-center gap-1.5 text-xs text-tenue my-5">
+      <app-icono nombre="ciencia" clase="w-3.5 h-3.5" />
+      Plan generado con criterios de evidencia científica
     </p>
   } @else {
-    <section class="text-center pt-14">
-      <div class="text-6xl mb-4">📋</div>
-      <h2 class="text-2xl font-bold mb-2">Aún no tienes un plan</h2>
-      <p class="text-apagado max-w-xs mx-auto mb-8 leading-relaxed">
-        Responde la evaluación inicial y te armamos rutina y dieta a tu medida,
-        con los ejercicios del catálogo Pegasus.
+    <section class="text-center pt-8">
+      <app-icono nombre="bolt" clase="w-16 h-16 mx-auto mb-5 text-acento" />
+      <h2 class="text-3xl font-extrabold leading-tight mb-3">
+        Tu entrenador personal,<br />en tu bolsillo
+      </h2>
+      <p class="text-apagado max-w-xs mx-auto mb-6 leading-relaxed">
+        Cuéntanos tu meta en 3 pasos y te armamos rutina y dieta a tu medida — hoy mismo.
       </p>
-      <a class="inline-block px-7 py-4 rounded-2xl bg-acento text-[#14100b] font-bold no-underline active:scale-[0.97] transition-transform"
-        routerLink="/anamnesis">Hacer mi evaluación</a>
+
+      <div class="flex flex-wrap justify-center gap-2 mb-8">
+        <span class="insignia"><app-icono nombre="ciencia" clase="w-3.5 h-3.5" /> Basado en evidencia</span>
+        <span class="insignia"><app-icono nombre="play" clase="w-3.5 h-3.5" /> 1,300+ ejercicios en video</span>
+        <span class="insignia"><app-icono nombre="pastel" clase="w-3.5 h-3.5" /> Dieta a tu medida</span>
+      </div>
+
+      <a class="inline-block px-8 py-4 rounded-2xl bg-gradient-to-r from-acento to-amber-400 text-[#14100b] font-bold no-underline active:scale-[0.97] transition-transform shadow-[0_8px_28px_rgba(249,115,22,0.28)]"
+        routerLink="/anamnesis">Crear mi plan gratis</a>
+      <p class="text-xs text-tenue mt-4">Menos de 2 minutos · sin registro</p>
     </section>
   }
 </div>

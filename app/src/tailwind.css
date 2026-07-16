@@ -23,9 +23,17 @@
   }
 
   .btn-primario {
-    @apply block w-full min-h-14 mt-6 rounded-2xl border-none bg-acento text-[#14100b]
+    @apply block w-full min-h-14 mt-6 rounded-2xl border-none text-[#14100b]
       text-lg font-bold transition-transform duration-75 active:scale-[0.98]
-      disabled:opacity-35 disabled:active:scale-100;
+      disabled:opacity-35 disabled:active:scale-100
+      bg-gradient-to-r from-acento to-amber-400
+      shadow-[0_8px_28px_rgba(249,115,22,0.28)];
+  }
+
+  /* Chip de señal de confianza (marketing: prueba social / autoridad) */
+  .insignia {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-borde bg-panel
+      px-3 py-1.5 text-xs text-apagado;
   }
 
   .btn-secundario {

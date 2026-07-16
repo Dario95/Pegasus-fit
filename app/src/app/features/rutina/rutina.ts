@@ -1,10 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Icono } from '../../core/icono';
 import { PlanService } from '../../core/plan.service';
 
 @Component({
   selector: 'app-rutina',
-  imports: [RouterLink],
+  imports: [RouterLink, Icono],
   templateUrl: './rutina.html',
   styleUrl: './rutina.scss',
 })
@@ -14,10 +15,16 @@ export class Rutina {
   readonly plan = this.planService.plan;
   readonly diaAbierto = signal(0);
 
+  /** Momento de celebración: el plan se generó hace menos de 2 minutos. */
+  readonly esNuevo = computed(() => {
+    const p = this.plan();
+    return !!p && Date.now() - new Date(p.generado).getTime() < 120_000;
+  });
+
   readonly etiquetaObjetivo: Record<string, string> = {
-    hipertrofia: '💪 Ganar músculo',
-    perdida_grasa: '🔥 Perder grasa',
-    acondicionamiento: '🫀 Acondicionamiento',
+    hipertrofia: 'Ganar músculo',
+    perdida_grasa: 'Perder grasa',
+    acondicionamiento: 'Acondicionamiento',
   };
 
   toggleDia(i: number): void {
