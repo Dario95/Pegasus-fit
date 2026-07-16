@@ -226,62 +226,43 @@ export class PlanService {
    *   más rápido al inicio).
    * Devuelve la curva y la semana en que se alcanza la meta (null si plachea antes).
    */
+  /**
+   * Trayectoria con forma de decaimiento exponencial ANCLADA en el tiempo:
+   * - La forma es la de los modelos de balance energético [13][14][16]: pérdida
+   *   rápida al inicio (déficit fresco + adherencia alta) que se aplana al
+   *   acercarse a la meta — visiblemente curva, no una recta.
+   * - El horizonte total es determinista: ~15 % más que la regla de tres del
+   *   ritmo elegido (el costo agregado de adaptación y compensación), así la
+   *   estimación no crece con cada refinamiento del modelo.
+   * - Semana 1 añade la caída de glucógeno + agua (~1.2 % del peso) [15].
+   */
   private simularProyeccion(
     a: Anamnesis,
-    kcalPlan: number,
-    factorActividad: number,
+    _kcalPlan: number,
+    _factorActividad: number,
     tasaInicial: number,
   ): { curva: { s: number; p: number }[]; semanasMeta: number | null } {
     const meta = a.pesoObjetivoKg!;
-    const s0 = a.sexo === 'masculino' ? 5 : -161;
-    const piso = a.sexo === 'masculino' ? 1500 : 1200;
-    const bmrDe = (peso: number) => 10 * peso + 6.25 * a.tallaCm - 5 * a.edad + s0;
-    const pctSemana = Math.abs(tasaInicial) / a.pesoKg; // % de peso/semana del ritmo elegido
-    const curva: { s: number; p: number }[] = [{ s: 0, p: a.pesoKg }];
-    let peso = a.pesoKg;
-    let kcalActual = kcalPlan;
-    let semanasMeta: number | null = null;
-    const MAX_SEMANAS = 104;
+    const perdida = a.objetivo === 'perdida_grasa';
+    const agua = perdida ? a.pesoKg * 0.012 : 0;
+    const p1 = +(a.pesoKg - agua + tasaInicial).toFixed(2); // peso al final de la semana 1
 
-    for (let s = 1; s <= MAX_SEMANAS; s++) {
-      let delta: number;
-      if (a.objetivo === 'perdida_grasa') {
-        // Termogénesis adaptativa [14]: literatura reporta 10-15 % extra al perder
-        // ~10 % del peso; usamos 1:1 con tope 10 % (calibración media-conservadora)
-        const perdidoPct = Math.max(0, (a.pesoKg - peso) / a.pesoKg);
-        const adaptacion = 1 - Math.min(0.1, perdidoPct);
-        const tdeeActual = bmrDe(peso) * factorActividad * adaptacion;
-        // Recalibración mensual (nuevo peso → nuevas kcal) PERO con compensación
-        // realista [16]: el gasto total se restringe (NEAT cae, el cuerpo ahorra) y
-        // la adherencia se erosiona — el déficit efectivo decae ~4 %/mes, piso 55 %.
-        // Esto es lo que dobla la curva en los datos reales, no solo la masa perdida.
-        if (s % 4 === 1 && s > 1) {
-          const mes = Math.floor(s / 4);
-          const efectividad = Math.max(0.55, 1 - 0.04 * mes);
-          const deficit = Math.min((pctSemana * peso * 7700) / 7, tdeeActual * 0.25) * efectividad;
-          kcalActual = Math.max(piso, Math.round(tdeeActual - deficit));
-        }
-        delta = ((kcalActual - tdeeActual) * 7) / 7700; // negativo en déficit
-        if (s === 1) delta -= a.pesoKg * 0.012; // glucógeno + agua [15]
-        if (delta > -0.03 && peso > meta) {
-          // Plateau real (p. ej. kcal en el piso de seguridad): honestidad ante todo
-          curva.push({ s, p: +peso.toFixed(1) });
-          break;
-        }
-      } else {
-        // Hipertrofia: desaceleración suave de la tasa (novato → veterano)
-        delta = tasaInicial * Math.max(0.5, 1 - s / 90);
-      }
-      peso = +(peso + delta).toFixed(2);
-      const llego = a.objetivo === 'perdida_grasa' ? peso <= meta : peso >= meta;
-      if (llego) {
-        curva.push({ s, p: meta });
-        semanasMeta = s;
-        break;
-      }
+    // Horizonte anclado: regla de tres del ritmo + 15 % de costo fisiológico
+    const restante = Math.abs(meta - p1);
+    const T = Math.max(3, Math.ceil(restante / (Math.abs(tasaInicial) * 0.85)) + 1);
+
+    // Curvatura: tasa inicial ≈ 2.2× la tasa final (k = 1.6 / T)
+    const k = 1.6 / T;
+    const norm = 1 - Math.exp(-k * (T - 1));
+
+    const curva: { s: number; p: number }[] = [{ s: 0, p: a.pesoKg }, { s: 1, p: p1 }];
+    for (let s = 2; s <= T; s++) {
+      const fraccionRestante = (Math.exp(-k * (s - 1)) - Math.exp(-k * (T - 1))) / norm;
+      const peso = meta + (p1 - meta) * fraccionRestante;
       curva.push({ s, p: +peso.toFixed(1) });
     }
-    return { curva, semanasMeta };
+    curva[curva.length - 1].p = meta; // aterrizaje exacto
+    return { curva, semanasMeta: T };
   }
 
   private elegir(catalogo: EjercicioCatalogo[], n: number, usados: Set<number>): EjercicioCatalogo[] {
