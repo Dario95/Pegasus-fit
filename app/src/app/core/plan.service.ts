@@ -313,6 +313,43 @@ export class PlanService {
     return (await this.wger.porCategoria(ej.categoria)).find((e) => e.id === ej.wgerId);
   }
 
+  /**
+   * Peso inicial sugerido cuando no hay historial: % del peso corporal según
+   * la zona muscular, escalado por experiencia y redondeado a 2.5 kg. Es un
+   * punto de partida conservador — el usuario ajusta en la primera serie.
+   */
+  pesoSugerido(categoria: number): number {
+    const p = this.plan();
+    if (!p) return 0;
+    const pctPorCategoria: Record<number, number> = {
+      [CAT.PIERNAS]: 0.4,
+      [CAT.ESPALDA]: 0.3,
+      [CAT.PECHO]: 0.3,
+      [CAT.PANTORRILLAS]: 0.3,
+      [CAT.HOMBROS]: 0.15,
+      [CAT.BRAZOS]: 0.1,
+      [CAT.ABS]: 0,
+      [CAT.CARDIO]: 0,
+    };
+    const escala = { principiante: 0.6, intermedio: 1, avanzado: 1.3 }[p.anamnesis.experiencia];
+    const bruto = (pctPorCategoria[categoria] ?? 0.15) * p.anamnesis.pesoKg * escala;
+    return Math.round(bruto / 2.5) * 2.5;
+  }
+
+  /** Ajusta y persiste el descanso de un ejercicio (configurable desde el reproductor). */
+  actualizarDescanso(diaIdx: number, ejIdx: number, descansoSeg: number): void {
+    const p = this.plan();
+    if (!p?.dias[diaIdx]?.ejercicios[ejIdx]) return;
+    const dias = p.dias.map((d, di) =>
+      di !== diaIdx
+        ? d
+        : { ...d, ejercicios: d.ejercicios.map((e, ei) => (ei !== ejIdx ? e : { ...e, descansoSeg })) },
+    );
+    const actualizado: Plan = { ...p, dias };
+    localStorage.setItem(this.clave(), JSON.stringify(actualizado));
+    this.plan.set(actualizado);
+  }
+
   /** Reemplaza un ejercicio del plan conservando series/reps/descanso, y persiste. */
   reemplazar(diaIdx: number, ejIdx: number, nuevo: EjercicioCatalogo): void {
     const p = this.plan();

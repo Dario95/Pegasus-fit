@@ -1,14 +1,17 @@
 {
   "/api": {
-    "target": "http://192.168.2.40:8095",
-    "changeOrigin": true
+    "target": "https://gym.soyelhomeroa.qzz.io",
+    "changeOrigin": true,
+    "secure": true
   },
   "/media": {
-    "target": "http://192.168.2.40:8095",
-    "changeOrigin": true
+    "target": "https://gym.soyelhomeroa.qzz.io",
+    "changeOrigin": true,
+    "secure": true
   },
   "/allauth": {
-    "target": "http://192.168.2.40:8095",
-    "changeOrigin": true
+    "target": "https://gym.soyelhomeroa.qzz.io",
+    "changeOrigin": true,
+    "secure": true
   }
 }

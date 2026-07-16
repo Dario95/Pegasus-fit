@@ -5,6 +5,7 @@ import { EjercicioHecho, HistorialService } from '../../core/historial.service';
 import { Icono } from '../../core/icono';
 import { PlanService } from '../../core/plan.service';
 import { beepCuenta, beepFin, beepOk } from '../../core/sonido';
+import { EjercicioCatalogo } from '../../core/wger.service';
 
 type Fase = 'serie' | 'descanso' | 'fin';
 
@@ -32,6 +33,11 @@ export class Entrenar implements OnDestroy {
   readonly pesoKg = signal(0);
   readonly descansoRestante = signal(0);
   readonly sonido = signal(true);
+
+  // Cambio de ejercicio en plena sesión (misma zona muscular)
+  readonly cambiando = signal(false);
+  readonly alternativas = signal<EjercicioCatalogo[]>([]);
+  readonly cargandoAlternativas = signal(false);
 
   private hechos: EjercicioHecho[] = [];
   private timer?: ReturnType<typeof setInterval>;
@@ -75,8 +81,13 @@ export class Entrenar implements OnDestroy {
     const ej = this.ejercicio();
     if (!ej) return;
     this.reps.set(this.repsObjetivo());
+    // Peso inicial: última serie de hoy → historial → sugerencia por zona y experiencia
     const previa = this.seriesHechasActual()[this.seriesHechasActual().length - 1];
-    this.pesoKg.set(previa?.pesoKg ?? this.historial.ultimoPesoDe(ej.wgerId) ?? 0);
+    this.pesoKg.set(
+      previa?.pesoKg ??
+        this.historial.ultimoPesoDe(ej.wgerId) ??
+        this.planService.pesoSugerido(ej.categoria),
+    );
   }
 
   ajustarReps(d: number): void {
@@ -85,6 +96,39 @@ export class Entrenar implements OnDestroy {
 
   ajustarPeso(d: number): void {
     this.pesoKg.update((p) => Math.max(0, +(p + d).toFixed(1)));
+  }
+
+  /** Descanso configurable (±15 s) — se guarda en el plan para las próximas sesiones. */
+  ajustarDescanso(d: number): void {
+    const ej = this.ejercicio();
+    if (!ej) return;
+    const nuevo = Math.max(15, Math.min(600, ej.descansoSeg + d));
+    this.planService.actualizarDescanso(this.diaIdx, this.ejIdx(), nuevo);
+  }
+
+  /** +15 s en caliente durante el descanso. */
+  extenderDescanso(): void {
+    this.descansoRestante.update((s) => s + 15);
+  }
+
+  async abrirCambio(): Promise<void> {
+    const ej = this.ejercicio();
+    if (!ej) return;
+    this.cambiando.set(true);
+    this.alternativas.set([]);
+    this.cargandoAlternativas.set(true);
+    try {
+      this.alternativas.set(await this.planService.alternativas(ej));
+    } finally {
+      this.cargandoAlternativas.set(false);
+    }
+  }
+
+  elegirAlternativa(alt: EjercicioCatalogo): void {
+    this.planService.reemplazar(this.diaIdx, this.ejIdx(), alt);
+    this.cambiando.set(false);
+    this.serieIdx.set(0); // el reemplazo empieza desde su primera serie
+    this.prepararSerie();
   }
 
   completarSerie(): void {

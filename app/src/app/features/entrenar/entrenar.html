@@ -49,8 +49,26 @@
       <img class="w-full aspect-video rounded-2xl object-cover bg-panel" [src]="ej.imagen" [alt]="ej.nombre" />
     }
 
-    <h2 class="text-2xl font-extrabold mt-3 leading-tight">{{ ej.nombre }}</h2>
-    <p class="text-apagado text-sm">{{ ej.series }} series × {{ ej.reps }}</p>
+    <div class="flex items-start justify-between gap-3 mt-3">
+      <div class="min-w-0">
+        <h2 class="text-2xl font-extrabold leading-tight">{{ ej.nombre }}</h2>
+        <p class="text-apagado text-sm">{{ ej.series }} series × {{ ej.reps }}</p>
+      </div>
+      <button
+        class="shrink-0 w-12 h-12 rounded-xl border border-borde bg-panel2 grid place-items-center text-apagado active:scale-95 transition-transform"
+        title="¿Máquina ocupada? Cambiar por uno equivalente"
+        (click)="abrirCambio()">
+        <app-icono nombre="intercambio" clase="w-5 h-5" />
+      </button>
+    </div>
+
+    <!-- Descanso configurable -->
+    <div class="flex items-center gap-2 mt-2 text-sm text-apagado">
+      <span>Descanso: <strong class="text-texto tabular-nums">{{ ej.descansoSeg }}s</strong></span>
+      <button class="w-9 h-9 rounded-lg bg-panel2 font-bold active:scale-95" (click)="ajustarDescanso(-15)">−</button>
+      <button class="w-9 h-9 rounded-lg bg-panel2 font-bold active:scale-95" (click)="ajustarDescanso(15)">+</button>
+      <span class="text-[10px] text-tenue">se guarda en tu plan</span>
+    </div>
 
     <!-- Progreso de series -->
     <div class="flex gap-1.5 mt-3">
@@ -67,7 +85,10 @@
         <p class="text-[6rem] leading-none font-extrabold tabular-nums"
           [class.text-cosmo]="descansoRestante() <= 3">{{ descansoRestante() }}</p>
         <p class="text-tenue text-xs mt-1">te avisamos con sonido — no mires la pantalla</p>
-        <button class="btn-secundario max-w-60 mx-auto" (click)="saltarDescanso()">Saltar descanso</button>
+        <div class="flex gap-2 max-w-72 mx-auto mt-4">
+          <button class="btn-secundario !mt-0 flex-1" (click)="extenderDescanso()">+15s</button>
+          <button class="btn-secundario !mt-0 flex-1" (click)="saltarDescanso()">Saltar</button>
+        </div>
       </section>
     } @else {
       <!-- Serie actual: steppers gigantes -->
@@ -95,6 +116,46 @@
         <button class="btn-primario !min-h-16 !text-xl" (click)="completarSerie()">✓ Serie completada</button>
         <button class="btn-secundario" (click)="saltarEjercicio()">Saltar ejercicio</button>
       </section>
+    }
+
+    <!-- Bottom sheet: cambiar el ejercicio actual (misma zona muscular) -->
+    @if (cambiando()) {
+      <div class="fixed inset-0 z-40 bg-black/60" (click)="cambiando.set(false)"></div>
+      <div class="fixed inset-x-0 bottom-0 z-50 max-w-md mx-auto rounded-t-3xl border border-borde bg-panel p-5 pb-8 max-h-[70dvh] overflow-y-auto">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 class="font-bold text-lg leading-tight">Cambiar ejercicio</h3>
+            <p class="text-apagado text-sm mt-0.5">Misma zona muscular que <strong class="text-texto">{{ ej.nombre }}</strong>.</p>
+          </div>
+          <button class="shrink-0 w-11 h-11 rounded-xl bg-panel2 grid place-items-center text-apagado" (click)="cambiando.set(false)">
+            <app-icono nombre="cerrar" clase="w-5 h-5" />
+          </button>
+        </div>
+        @if (cargandoAlternativas()) {
+          <p class="text-apagado text-sm py-8 text-center">Buscando alternativas…</p>
+        } @else {
+          <ul class="mt-4 list-none space-y-1">
+            @for (alt of alternativas(); track alt.id) {
+              <li>
+                <button class="w-full flex gap-3 items-center py-2 px-2 rounded-xl active:bg-panel2 text-left"
+                  (click)="elegirAlternativa(alt)">
+                  @if (alt.video) {
+                    <video class="w-16 h-16 rounded-lg object-cover bg-fondo shrink-0"
+                      [src]="alt.video" [poster]="alt.imagen ?? ''" autoplay loop muted playsinline></video>
+                  } @else if (alt.imagen) {
+                    <img class="w-16 h-16 rounded-lg object-cover bg-fondo shrink-0" [src]="alt.imagen" [alt]="alt.nombre" loading="lazy" />
+                  }
+                  <span class="flex-1 font-medium leading-tight">{{ alt.nombre }}</span>
+                  <app-icono nombre="intercambio" clase="w-4 h-4 text-cosmo shrink-0" />
+                </button>
+              </li>
+            } @empty {
+              <p class="text-apagado text-sm py-6 text-center">No encontramos alternativas — revisa la conexión.</p>
+            }
+          </ul>
+          <button class="btn-secundario" (click)="abrirCambio()">Ver otras opciones</button>
+        }
+      </div>
     }
   }
 </div>
