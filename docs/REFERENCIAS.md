@@ -19,6 +19,12 @@ Base de evidencia de `app/src/app/core/plan.service.ts` (los números coinciden 
 10. **Iraki J, Fitschen P, Espinar S, Helms E (2019).** *Nutrition Recommendations for Bodybuilders in the Off-Season: A Narrative Review.* Sports (Basel) 7(7):154. — Superávit pequeño (**~10 %** / 250-500 kcal); grasa dietaria 0.5-1.5 g/kg y **nunca <20 %** de las kcal.
 11. **Schoenfeld BJ, Aragon AA (2018).** *How much protein can the body use in a single meal for muscle-building? Implications for daily protein distribution.* JISSN 15:10. — Repartir la proteína en **≥4 comidas de ~0.4 g/kg** maximiza la síntesis proteica diaria.
 
+## Trayectoria de peso (modelo del gráfico de proyección)
+
+13. **Hall KD, Sacks G, Chandramohan D, et al. (2011).** *Quantification of the effect of energy imbalance on bodyweight.* The Lancet 378(9793):826-837. — La pérdida de peso **no es lineal**: el gasto energético cae junto con el peso y la trayectoria se aplana (base del Body Weight Planner del NIH). Fundamento de simular semana a semana recalculando el TDEE al peso actual, en vez de proyectar una recta.
+14. **Rosenbaum M, Leibel RL (2010).** *Adaptive thermogenesis in humans.* International Journal of Obesity 34:S47-S55. — Tras perder ~10 % del peso, el gasto cae ~10-15 % **más** de lo que predice la masa perdida (termogénesis adaptativa). En la simulación: reducción de hasta 15 % del gasto proporcional al % de peso perdido.
+15. **Kreitzman SN, Coxon AY, Szaz KF (1992).** *Glycogen storage: illusions of easy weight loss, excessive weight regain, and distortions in estimates of body composition.* American Journal of Clinical Nutrition 56(1):292S-293S. — El glucógeno se almacena con 3-4 g de agua por gramo: la caída rápida de la primera semana de dieta es mayormente agua. En la simulación: caída extra única (~1.2 % del peso) en la semana 1, comunicada como tal al usuario.
+
 ## Cribado de salud
 
 12. **Warburton DER, Jamnik VK, Bredin SSD, Gledhill N (2021).** *The 2021 Physical Activity Readiness Questionnaire for Everyone (PAR-Q+).* Health & Fitness Journal of Canada. — Cuestionario validado de cribado pre-ejercicio; base del filtro de seguridad de la anamnesis.

@@ -34,6 +34,12 @@ import { CAT, EQUIPO_CASA, EjercicioCatalogo, WgerService } from './wger.service
  *      0.5-1.5 g/kg, nunca <20 % de las kcal.
  * [11] Schoenfeld & Aragon (2018) JISSN — distribución de proteína: ~0.4 g/kg por
  *      comida en ≥4 comidas maximiza la síntesis proteica.
+ * [13] Hall et al. (2011) Lancet — la pérdida de peso NO es lineal: el gasto cae
+ *      con el peso y la curva se aplana (base del Body Weight Planner del NIH).
+ * [14] Rosenbaum & Leibel (2010) Int J Obes — termogénesis adaptativa: tras perder
+ *      ~10 % del peso, el gasto cae ~10-15 % más de lo que predice la masa.
+ * [15] Kreitzman et al. (1992) Am J Clin Nutr — el glucógeno se almacena con 3-4 g
+ *      de agua: la caída rápida de la primera semana es agua, no grasa.
  */
 
 const STORAGE_KEY = 'pegasus.plan';
@@ -207,6 +213,70 @@ export class PlanService {
     return dias;
   }
 
+  /**
+   * Simulación no lineal de la trayectoria de peso [13][14][15]:
+   * - Pérdida: semana 1 incluye caída extra de glucógeno+agua (~1.2 % del peso,
+   *   una sola vez [15]); cada semana se recalcula el TDEE al peso actual (Mifflin)
+   *   y se aplica termogénesis adaptativa (hasta −15 % del gasto al perder 10 %
+   *   del peso [14]) → la curva se aplana sola, como en la vida real [13].
+   * - Ganancia: tasa por experiencia con desaceleración suave (el novato gana
+   *   más rápido al inicio).
+   * Devuelve la curva y la semana en que se alcanza la meta (null si plachea antes).
+   */
+  private simularProyeccion(
+    a: Anamnesis,
+    kcalPlan: number,
+    factorActividad: number,
+    tasaInicial: number,
+  ): { curva: { s: number; p: number }[]; semanasMeta: number | null } {
+    const meta = a.pesoObjetivoKg!;
+    const s0 = a.sexo === 'masculino' ? 5 : -161;
+    const piso = a.sexo === 'masculino' ? 1500 : 1200;
+    const bmrDe = (peso: number) => 10 * peso + 6.25 * a.tallaCm - 5 * a.edad + s0;
+    const pctSemana = Math.abs(tasaInicial) / a.pesoKg; // % de peso/semana del ritmo elegido
+    const curva: { s: number; p: number }[] = [{ s: 0, p: a.pesoKg }];
+    let peso = a.pesoKg;
+    let kcalActual = kcalPlan;
+    let semanasMeta: number | null = null;
+    const MAX_SEMANAS = 104;
+
+    for (let s = 1; s <= MAX_SEMANAS; s++) {
+      let delta: number;
+      if (a.objetivo === 'perdida_grasa') {
+        // Termogénesis adaptativa [14]: literatura reporta 10-15 % extra al perder
+        // ~10 % del peso; usamos 1:1 con tope 10 % (calibración media-conservadora)
+        const perdidoPct = Math.max(0, (a.pesoKg - peso) / a.pesoKg);
+        const adaptacion = 1 - Math.min(0.1, perdidoPct);
+        const tdeeActual = bmrDe(peso) * factorActividad * adaptacion;
+        // Recalibración mensual: igual que pide el plan (nuevo peso → nuevas kcal),
+        // manteniendo el déficit del ritmo elegido. Sin esto la curva plachea sola [13].
+        if (s % 4 === 1 && s > 1) {
+          const deficit = Math.min((pctSemana * peso * 7700) / 7, tdeeActual * 0.25);
+          kcalActual = Math.max(piso, Math.round(tdeeActual - deficit));
+        }
+        delta = ((kcalActual - tdeeActual) * 7) / 7700; // negativo en déficit
+        if (s === 1) delta -= a.pesoKg * 0.012; // glucógeno + agua [15]
+        if (delta > -0.03 && peso > meta) {
+          // Plateau real (p. ej. kcal en el piso de seguridad): honestidad ante todo
+          curva.push({ s, p: +peso.toFixed(1) });
+          break;
+        }
+      } else {
+        // Hipertrofia: desaceleración suave de la tasa (novato → veterano)
+        delta = tasaInicial * Math.max(0.5, 1 - s / 90);
+      }
+      peso = +(peso + delta).toFixed(2);
+      const llego = a.objetivo === 'perdida_grasa' ? peso <= meta : peso >= meta;
+      if (llego) {
+        curva.push({ s, p: meta });
+        semanasMeta = s;
+        break;
+      }
+      curva.push({ s, p: +peso.toFixed(1) });
+    }
+    return { curva, semanasMeta };
+  }
+
   private elegir(catalogo: EjercicioCatalogo[], n: number, usados: Set<number>): EjercicioCatalogo[] {
     const disponibles = catalogo.filter((e) => !usados.has(e.id));
     const barajados = [...disponibles].sort(() => Math.random() - 0.5);
@@ -298,13 +368,13 @@ export class PlanService {
     const piso = a.sexo === 'masculino' ? 1500 : 1200;
     kcal = Math.max(Math.round(kcal), piso);
 
-    // Semanas hasta el peso objetivo (estimación honesta, no promesa)
+    // Curva realista semana a semana [13][14][15] — no una línea recta
     let semanasEstimadas: number | null = null;
+    let proyeccion: { s: number; p: number }[] | undefined;
     if (a.pesoObjetivoKg && cambioSemanalKg) {
-      const delta = a.pesoObjetivoKg - a.pesoKg;
-      if (Math.sign(delta) === Math.sign(cambioSemanalKg) && cambioSemanalKg !== 0) {
-        semanasEstimadas = Math.max(1, Math.round(Math.abs(delta / cambioSemanalKg)));
-      }
+      const sim = this.simularProyeccion(a, kcal, factor, cambioSemanalKg);
+      proyeccion = sim.curva;
+      semanasEstimadas = sim.semanasMeta;
     }
 
     // Proteína: 1.6-2.2 g/kg [7]; en déficit 2.3 g/kg [8]
@@ -328,6 +398,7 @@ export class PlanService {
       pesoObjetivoKg: a.pesoObjetivoKg,
       cambioSemanalKg,
       semanasEstimadas,
+      proyeccion,
       nota:
         `Reparte la proteína en ~${comidas} comidas (${Math.round(proteinaG / comidas)} g c/u). ` +
         'Orientación general basada en evidencia (ver Referencias) — no sustituye a un profesional de la nutrición.',

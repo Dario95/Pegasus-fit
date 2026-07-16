@@ -50,8 +50,11 @@ export interface Dieta {
   carbohidratosG: number;
   // Proyección hacia la meta (null si no hay peso objetivo)
   pesoObjetivoKg: number | null;
-  cambioSemanalKg: number | null; // negativo = perder
-  semanasEstimadas: number | null;
+  cambioSemanalKg: number | null; // ritmo inicial; negativo = perder
+  semanasEstimadas: number | null; // null si la simulación plachea antes de la meta
+  /** Curva simulada semana a semana (modelo no lineal: agua/glucógeno inicial,
+   *  TDEE recalculado al peso actual y termogénesis adaptativa). */
+  proyeccion?: { s: number; p: number }[];
   nota: string;
 }
 

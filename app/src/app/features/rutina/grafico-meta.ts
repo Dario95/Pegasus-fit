@@ -31,17 +31,34 @@ export class GraficoMeta {
 
   readonly tooltip = signal<Punto | null>(null);
 
+  /** true si la simulación llega a la meta; false = la curva plachea antes. */
+  readonly llegaMeta = computed(() => this.dieta().semanasEstimadas !== null);
+
   readonly puntos = computed<Punto[]>(() => {
     const d = this.dieta();
-    if (!d.pesoObjetivoKg || !d.cambioSemanalKg || !d.semanasEstimadas) return [];
-    const semanas = d.semanasEstimadas;
+    if (!d.pesoObjetivoKg) return [];
     const hoy = new Date();
-    const pts: Punto[] = [];
-    for (let s = 0; s <= semanas; s++) {
-      const peso = s === semanas ? d.pesoObjetivoKg : +(this.pesoInicial() + d.cambioSemanalKg * s).toFixed(1);
-      pts.push({ semana: s, peso, fecha: new Date(hoy.getTime() + s * 7 * 86400_000), x: 0, y: 0 });
+    // Curva simulada (modelo no lineal); fallback lineal para planes antiguos
+    let crudos: { s: number; p: number }[];
+    if (d.proyeccion && d.proyeccion.length > 1) {
+      crudos = d.proyeccion;
+    } else if (d.cambioSemanalKg && d.semanasEstimadas) {
+      crudos = Array.from({ length: d.semanasEstimadas + 1 }, (_, s) => ({
+        s,
+        p: s === d.semanasEstimadas ? d.pesoObjetivoKg! : +(this.pesoInicial() + d.cambioSemanalKg! * s).toFixed(1),
+      }));
+    } else {
+      return [];
     }
+    const pts: Punto[] = crudos.map((c) => ({
+      semana: c.s,
+      peso: c.p,
+      fecha: new Date(hoy.getTime() + c.s * 7 * 86400_000),
+      x: 0,
+      y: 0,
+    }));
     // Escalas
+    const semanas = pts[pts.length - 1].semana || 1;
     const xs = (s: number) => this.margen.izq + (s / semanas) * (this.W - this.margen.izq - this.margen.der);
     const pesos = pts.map((p) => p.peso);
     const min = Math.min(...pesos) - 1;

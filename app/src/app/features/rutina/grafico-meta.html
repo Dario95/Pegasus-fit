@@ -1,12 +1,25 @@
 @if (puntos().length) {
   <section class="tarjeta p-5 mb-5">
     <h3 class="text-sm text-apagado font-medium">📅 Tu camino a {{ dieta().pesoObjetivoKg }} kg</h3>
-    <p class="text-2xl font-extrabold mt-1 leading-tight">
-      {{ fechaMeta() }}
-    </p>
-    <p class="text-xs text-tenue mt-0.5 mb-3">
-      Manteniendo el plan, esa es tu fecha estimada. Cada sesión te acerca.
-    </p>
+    @if (llegaMeta()) {
+      <p class="text-2xl font-extrabold mt-1 leading-tight">
+        {{ fechaMeta() }}
+      </p>
+      <p class="text-xs text-tenue mt-0.5 mb-3">
+        Modelo realista: las primeras semanas caen más rápido (agua y glucógeno), luego tu
+        cuerpo se vuelve eficiente y la curva se suaviza — <strong class="text-apagado">es normal, no es
+        fracaso</strong>. Asume que recalibras tu plan cada 4 semanas, como te lo pedirá la app.
+      </p>
+    } @else {
+      <p class="text-2xl font-extrabold mt-1 leading-tight">
+        Primer plateau: ~{{ fechaMeta() }}
+      </p>
+      <p class="text-xs text-tenue mt-0.5 mb-3">
+        Con estas calorías, tu cuerpo se adaptará antes de llegar a la meta — es fisiología, no
+        falta de voluntad. Al acercarte a esa fecha, rehaz la evaluación con tu peso nuevo y el
+        plan se recalcula para la siguiente etapa.
+      </p>
+    }
 
     <svg [attr.viewBox]="'0 0 ' + W + ' ' + H" class="w-full touch-none select-none" role="img"
       [attr.aria-label]="'Proyección de peso: de ' + pesoInicial() + ' kg hoy a ' + dieta().pesoObjetivoKg + ' kg el ' + fechaMeta()"
