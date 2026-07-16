@@ -1,0 +1,65 @@
+<div class="max-w-md mx-auto">
+  <h2 class="text-2xl font-bold mb-4">Tu perfil</h2>
+
+  <!-- Sesión -->
+  @if (auth.usuario(); as u) {
+    <section class="tarjeta p-5 mb-4 flex items-center gap-4">
+      <div class="w-14 h-14 rounded-full bg-cosmo-suave border border-cosmo grid place-items-center text-xl font-extrabold text-cosmo uppercase">
+        {{ u.username.charAt(0) }}
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="font-bold text-lg leading-tight">{{ u.username }}</p>
+        @if (u.email) { <p class="text-apagado text-sm truncate">{{ u.email }}</p> }
+      </div>
+    </section>
+  } @else {
+    <section class="tarjeta p-5 mb-4 text-center">
+      <app-icono nombre="usuario" clase="w-10 h-10 mx-auto mb-2 text-cosmo" />
+      <p class="font-semibold">Estás entrenando como invitado</p>
+      <p class="text-apagado text-sm mt-1 mb-4">Crea tu cuenta y tu plan queda guardado a tu nombre.</p>
+      <a routerLink="/registro" class="btn-primario !mt-0 grid place-items-center no-underline">Crear mi cuenta</a>
+      <a routerLink="/login" class="btn-secundario grid place-items-center no-underline">Ya tengo cuenta</a>
+    </section>
+  }
+
+  <!-- Mi evaluación -->
+  <section class="tarjeta p-5 mb-4">
+    <h3 class="flex items-center gap-2 text-sm text-apagado font-medium mb-3">
+      <app-icono nombre="clipboard" clase="w-4 h-4" /> Mi evaluación
+    </h3>
+    @if (plan(); as p) {
+      <p class="text-sm leading-relaxed">
+        <strong>{{ etiquetaObjetivo[p.anamnesis.objetivo] }}</strong>
+        · {{ p.anamnesis.diasSemana }} días/semana · {{ p.anamnesis.experiencia }}
+        @if (p.anamnesis.pesoObjetivoKg) { · meta {{ p.anamnesis.pesoObjetivoKg }} kg }
+      </p>
+      <p class="text-xs text-tenue mt-1">Plan generado el {{ fecha(p.generado) }}</p>
+      <button class="btn-secundario flex items-center justify-center gap-2" (click)="repetirEvaluacion()">
+        <app-icono nombre="intercambio" clase="w-4 h-4" /> Repetir mi evaluación
+      </button>
+      <p class="text-xs text-tenue mt-2 text-center">
+        Hazla de nuevo si cambió tu peso, tu disponibilidad o tu meta — o cada 4 semanas para recalibrar.
+      </p>
+    } @else {
+      <p class="text-apagado text-sm mb-2">Aún no tienes un plan.</p>
+      <a routerLink="/anamnesis" class="btn-primario !mt-2 grid place-items-center no-underline">Hacer mi evaluación</a>
+    }
+  </section>
+
+  <!-- Ciencia -->
+  <section class="tarjeta p-5 mb-4">
+    <h3 class="flex items-center gap-2 text-sm text-apagado font-medium mb-2">
+      <app-icono nombre="ciencia" clase="w-4 h-4" /> La ciencia detrás
+    </h3>
+    <p class="text-xs text-tenue leading-relaxed">
+      Tu rutina y dieta se calculan con 16 referencias científicas (Schoenfeld, Morton, Helms,
+      Hall, Mifflin-St Jeor…). Orientación general — no sustituye a profesionales de la salud.
+    </p>
+  </section>
+
+  @if (auth.usuario()) {
+    <button class="btn-secundario !border-red-900 !text-red-400" (click)="salir()">Cerrar sesión</button>
+  }
+
+  <p class="text-center text-xs text-tenue mt-6">Pegasus Fit · Despierta tu Cosmo, Forja tu Armadura</p>
+</div>

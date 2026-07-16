@@ -63,4 +63,6 @@ export interface Plan {
   dias: DiaPlan[];
   dieta: Dieta;
   generado: string;
+  /** Versión del motor de cálculo; los planes viejos se migran al cargar. */
+  version?: number;
 }

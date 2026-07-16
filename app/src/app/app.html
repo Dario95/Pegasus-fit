@@ -4,12 +4,7 @@
       <img src="avatar.png" alt="" class="w-8 h-8 rounded-full" />
       <span class="wordmark text-xl font-black tracking-tight">PEGASUS<em>FIT</em></span>
     </a>
-    @if (auth.usuario(); as u) {
-      <button class="flex items-center gap-1.5 text-xs text-apagado bg-transparent border border-borde rounded-full px-3 py-1.5"
-        (click)="auth.salir()" title="Cerrar sesión">
-        <app-icono nombre="usuario" clase="w-3.5 h-3.5" /> {{ u.username }} · salir
-      </button>
-    } @else {
+    @if (!auth.usuario()) {
       <a routerLink="/login" class="text-xs text-apagado no-underline border border-borde rounded-full px-3 py-1.5">
         Iniciar sesión
       </a>
@@ -32,8 +27,8 @@
     <a routerLink="/acceso" routerLinkActive="tab-activa" class="tab">
       <app-icono nombre="qr-code" clase="w-6 h-6" /><span>Acceso</span>
     </a>
-    <a routerLink="/anamnesis" routerLinkActive="tab-activa" class="tab">
-      <app-icono nombre="clipboard" clase="w-6 h-6" /><span>Evaluación</span>
+    <a routerLink="/perfil" routerLinkActive="tab-activa" class="tab">
+      <app-icono nombre="usuario" clase="w-6 h-6" /><span>Perfil</span>
     </a>
   </nav>
 }

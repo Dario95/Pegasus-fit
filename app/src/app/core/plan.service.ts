@@ -46,6 +46,8 @@ import { CAT, EQUIPO_CASA, EjercicioCatalogo, WgerService } from './wger.service
  */
 
 const STORAGE_KEY = 'pegasus.plan';
+/** Sube cuando cambie el cálculo de dieta/proyección: los planes guardados se migran solos. */
+const VERSION_MOTOR = 3;
 
 interface DiaPlantilla {
   nombre: string;
@@ -143,7 +145,15 @@ export class PlanService {
   private cargar(): Plan | null {
     try {
       const raw = localStorage.getItem(this.clave());
-      return raw ? (JSON.parse(raw) as Plan) : null;
+      if (!raw) return null;
+      let plan = JSON.parse(raw) as Plan;
+      // Migración: recalcular dieta+proyección con el motor vigente,
+      // conservando la rutina (y los swaps) tal como el usuario la dejó
+      if ((plan.version ?? 0) < VERSION_MOTOR && plan.anamnesis) {
+        plan = { ...plan, dieta: this.calcularDieta(plan.anamnesis), version: VERSION_MOTOR };
+        localStorage.setItem(this.clave(), JSON.stringify(plan));
+      }
+      return plan;
     } catch {
       return null;
     }
@@ -157,7 +167,7 @@ export class PlanService {
   async generar(anamnesis: Anamnesis): Promise<Plan> {
     const dias = await this.generarRutina(anamnesis);
     const dieta = this.calcularDieta(anamnesis);
-    const plan: Plan = { anamnesis, dias, dieta, generado: new Date().toISOString() };
+    const plan: Plan = { anamnesis, dias, dieta, generado: new Date().toISOString(), version: VERSION_MOTOR };
     localStorage.setItem(this.clave(), JSON.stringify(plan));
     this.plan.set(plan);
     return plan;

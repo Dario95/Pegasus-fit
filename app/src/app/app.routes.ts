@@ -28,6 +28,11 @@ export const routes: Routes = [
     title: 'Evaluación inicial',
   },
   {
+    path: 'perfil',
+    loadComponent: () => import('./features/perfil/perfil').then((m) => m.Perfil),
+    title: 'Mi Perfil',
+  },
+  {
     path: 'login',
     loadComponent: () => import('./features/auth/login').then((m) => m.Login),
     title: 'Iniciar sesión',
