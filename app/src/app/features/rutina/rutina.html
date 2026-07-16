@@ -1,1 +1,53 @@
-<p>rutina works!</p>
+@if (plan(); as p) {
+  <header class="encabezado">
+    <div>
+      <h2>Tu plan</h2>
+      <p class="sub">{{ etiquetaObjetivo[p.anamnesis.objetivo] }} · {{ p.anamnesis.diasSemana }} días/semana · {{ p.anamnesis.experiencia }}</p>
+    </div>
+    <button class="link" (click)="regenerar()">Rehacer</button>
+  </header>
+
+  <section class="dieta">
+    <h3>🍽️ Tu dieta diaria</h3>
+    <div class="kcal">{{ p.dieta.kcalObjetivo }} <span>kcal</span></div>
+    <div class="macros">
+      <div><strong>{{ p.dieta.proteinaG }}g</strong><span>proteína</span></div>
+      <div><strong>{{ p.dieta.carbohidratosG }}g</strong><span>carbohidratos</span></div>
+      <div><strong>{{ p.dieta.grasaG }}g</strong><span>grasa</span></div>
+    </div>
+    <p class="detalle">Gasto basal {{ p.dieta.bmr }} kcal · mantenimiento {{ p.dieta.tdee }} kcal</p>
+    <p class="nota">{{ p.dieta.nota }}</p>
+  </section>
+
+  @for (dia of p.dias; track dia.nombre; let i = $index) {
+    <section class="dia" [class.abierto]="diaAbierto() === i">
+      <button class="dia-titulo" (click)="toggleDia(i)">
+        <span>Día {{ i + 1 }} · {{ dia.nombre }}</span>
+        <span class="conteo">{{ dia.ejercicios.length }} ejercicios {{ diaAbierto() === i ? '▲' : '▼' }}</span>
+      </button>
+      @if (diaAbierto() === i) {
+        <ul>
+          @for (ej of dia.ejercicios; track ej.wgerId) {
+            <li class="ejercicio">
+              @if (ej.video) {
+                <video [src]="ej.video" [poster]="ej.imagen ?? ''" autoplay loop muted playsinline></video>
+              } @else if (ej.imagen) {
+                <img [src]="ej.imagen" [alt]="ej.nombre" loading="lazy" />
+              }
+              <div class="info">
+                <p class="nombre">{{ ej.nombre }}</p>
+                <p class="esquema">{{ ej.series }} series × {{ ej.reps }} reps · descanso {{ ej.descansoSeg }}s</p>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+} @else {
+  <section class="vacio">
+    <h2>Aún no tienes un plan</h2>
+    <p>Responde la evaluación inicial y te armamos rutina y dieta a tu medida, con los ejercicios del catálogo Pegasus.</p>
+    <a class="primario" routerLink="/anamnesis">📋 Hacer mi evaluación</a>
+  </section>
+}
