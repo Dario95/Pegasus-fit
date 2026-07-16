@@ -1,8 +1,8 @@
 <div class="max-w-xl mx-auto">
   @if (plan(); as p) {
     @if (esNuevo()) {
-      <div class="flex items-center gap-3 rounded-2xl border border-acento/40 bg-acento-suave px-4 py-3 mb-4">
-        <app-icono nombre="check-circulo" clase="w-6 h-6 text-acento shrink-0" />
+      <div class="flex items-center gap-3 rounded-2xl border border-cosmo/40 bg-cosmo-suave px-4 py-3 mb-4">
+        <app-icono nombre="check-circulo" clase="w-6 h-6 text-cosmo shrink-0" />
         <p class="text-sm leading-snug">
           <strong>Tu plan está listo.</strong> El mejor momento para empezar es tu próxima visita al gym.
         </p>
@@ -16,7 +16,7 @@
           {{ etiquetaObjetivo[p.anamnesis.objetivo] }} · {{ p.anamnesis.diasSemana }} días/semana · {{ p.anamnesis.experiencia }}
         </p>
       </div>
-      <button class="bg-transparent border-none text-acento min-h-11 text-sm" (click)="regenerar()">Rehacer</button>
+      <button class="bg-transparent border-none text-cosmo min-h-11 text-sm" (click)="regenerar()">Rehacer</button>
     </header>
 
     <section class="tarjeta p-5 mb-5 bg-gradient-to-br from-panel to-panel2">
@@ -41,7 +41,7 @@
         </div>
       </div>
       <p class="text-xs text-tenue">Gasto basal {{ p.dieta.bmr }} kcal · mantenimiento {{ p.dieta.tdee }} kcal</p>
-      <a routerLink="/dieta" class="mt-3 flex items-center justify-between text-sm text-acento no-underline font-semibold">
+      <a routerLink="/dieta" class="mt-3 flex items-center justify-between text-sm text-cosmo no-underline font-semibold">
         Ver mi plan nutricional completo →
       </a>
     </section>
@@ -49,7 +49,7 @@
     <app-grafico-meta [pesoInicial]="p.anamnesis.pesoKg" [dieta]="p.dieta" />
 
     @for (dia of p.dias; track dia.nombre; let i = $index) {
-      <section class="tarjeta mb-3 overflow-hidden" [class.border-acento]="diaAbierto() === i">
+      <section class="tarjeta mb-3 overflow-hidden" [class.border-cosmo]="diaAbierto() === i">
         <button class="flex justify-between items-center w-full min-h-15 px-4 bg-transparent border-none text-texto font-semibold text-base"
           (click)="toggleDia(i)">
           <span>Día {{ i + 1 }} · {{ dia.nombre }}</span>
@@ -122,7 +122,7 @@
                     <img class="w-16 h-16 rounded-lg object-cover bg-fondo shrink-0" [src]="alt.imagen" [alt]="alt.nombre" loading="lazy" />
                   }
                   <span class="flex-1 font-medium leading-tight">{{ alt.nombre }}</span>
-                  <app-icono nombre="intercambio" clase="w-4 h-4 text-acento shrink-0" />
+                  <app-icono nombre="intercambio" clase="w-4 h-4 text-cosmo shrink-0" />
                 </button>
               </li>
             } @empty {
@@ -135,7 +135,7 @@
     }
   } @else {
     <section class="text-center pt-8">
-      <app-icono nombre="bolt" clase="w-16 h-16 mx-auto mb-5 text-acento" />
+      <app-icono nombre="bolt" clase="w-16 h-16 mx-auto mb-5 text-cosmo" />
       <h2 class="text-3xl font-extrabold leading-tight mb-3">
         Tu entrenador personal,<br />en tu bolsillo
       </h2>
