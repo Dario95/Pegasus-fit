@@ -1,0 +1,100 @@
+<div class="max-w-md mx-auto">
+  @if (!dia()) {
+    <p class="text-apagado text-center pt-16">No hay un plan activo. Haz tu evaluación primero.</p>
+  } @else if (fase() === 'fin') {
+    <!-- Resumen de la sesión -->
+    <section class="text-center pt-10">
+      <div class="text-6xl mb-4">💪</div>
+      <h2 class="text-3xl font-extrabold">¡Sesión completada!</h2>
+      <p class="text-apagado mt-1">{{ dia()!.nombre }} · {{ minutos() }} min</p>
+      <div class="flex gap-3 my-7">
+        <div class="flex-1 tarjeta p-4">
+          <p class="text-2xl font-extrabold">{{ resumen().series }}</p>
+          <p class="text-xs text-apagado">series</p>
+        </div>
+        <div class="flex-1 tarjeta p-4">
+          <p class="text-2xl font-extrabold">{{ resumen().ejercicios }}</p>
+          <p class="text-xs text-apagado">ejercicios</p>
+        </div>
+        <div class="flex-1 tarjeta p-4">
+          <p class="text-2xl font-extrabold">{{ resumen().volumen }}</p>
+          <p class="text-xs text-apagado">kg movidos</p>
+        </div>
+      </div>
+      <button class="btn-primario" (click)="guardarYSalir()">Guardar y volver al inicio</button>
+      <p class="text-xs text-tenue mt-3">Tu racha y tu historial se actualizan solos.</p>
+    </section>
+  } @else if (ejercicio(); as ej) {
+    <!-- Cabecera persistente (spec §5.1) -->
+    <header class="flex items-center gap-3 mb-3 text-sm text-apagado">
+      <button class="bg-transparent border-none text-texto min-w-11 min-h-11 grid place-items-center" (click)="salir()">
+        <app-icono nombre="cerrar" clase="w-5 h-5" />
+      </button>
+      <span class="whitespace-nowrap">Ejercicio {{ ejIdx() + 1 }} de {{ totalEjercicios() }}</span>
+      <div class="flex-1 h-1 rounded-full bg-borde overflow-hidden">
+        <div class="h-full bg-cosmo transition-all" [style.width.%]="((ejIdx() + 1) / totalEjercicios()) * 100"></div>
+      </div>
+      <span>{{ minutos() }}′</span>
+      <button class="bg-transparent border-none min-w-11 min-h-11 text-lg"
+        [class.opacity-40]="!sonido()" (click)="sonido.set(!sonido())" title="Sonido">
+        {{ sonido() ? '🔊' : '🔇' }}
+      </button>
+    </header>
+
+    <!-- Video de técnica (mudo, en loop) -->
+    @if (ej.video) {
+      <video class="w-full aspect-video rounded-2xl object-cover bg-panel" [src]="ej.video"
+        [poster]="ej.imagen ?? ''" autoplay loop muted playsinline></video>
+    } @else if (ej.imagen) {
+      <img class="w-full aspect-video rounded-2xl object-cover bg-panel" [src]="ej.imagen" [alt]="ej.nombre" />
+    }
+
+    <h2 class="text-2xl font-extrabold mt-3 leading-tight">{{ ej.nombre }}</h2>
+    <p class="text-apagado text-sm">{{ ej.series }} series × {{ ej.reps }}</p>
+
+    <!-- Progreso de series -->
+    <div class="flex gap-1.5 mt-3">
+      @for (n of [].constructor(ej.series); track $index) {
+        <div class="flex-1 h-2 rounded-full"
+          [class]="$index < seriesHechasActual().length ? 'bg-cosmo' : $index === serieIdx() ? 'bg-borde border border-cosmo/60' : 'bg-borde'"></div>
+      }
+    </div>
+
+    @if (fase() === 'descanso') {
+      <!-- Descanso: número gigante + sonido en 3-2-1 -->
+      <section class="text-center py-8">
+        <p class="text-apagado text-sm uppercase tracking-widest">Descansa</p>
+        <p class="text-[6rem] leading-none font-extrabold tabular-nums"
+          [class.text-cosmo]="descansoRestante() <= 3">{{ descansoRestante() }}</p>
+        <p class="text-tenue text-xs mt-1">te avisamos con sonido — no mires la pantalla</p>
+        <button class="btn-secundario max-w-60 mx-auto" (click)="saltarDescanso()">Saltar descanso</button>
+      </section>
+    } @else {
+      <!-- Serie actual: steppers gigantes -->
+      <section class="mt-4">
+        <p class="text-apagado text-sm mb-2">Serie {{ serieIdx() + 1 }} de {{ ej.series }}</p>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="tarjeta p-3.5 text-center">
+            <p class="text-xs text-apagado">Reps</p>
+            <p class="text-4xl font-extrabold tabular-nums my-1">{{ reps() }}</p>
+            <div class="flex gap-2">
+              <button class="flex-1 min-h-13 rounded-xl bg-panel2 text-2xl font-bold active:scale-95" (click)="ajustarReps(-1)">−</button>
+              <button class="flex-1 min-h-13 rounded-xl bg-cosmo-suave border border-cosmo text-cosmo text-2xl font-bold active:scale-95" (click)="ajustarReps(1)">+</button>
+            </div>
+          </div>
+          <div class="tarjeta p-3.5 text-center">
+            <p class="text-xs text-apagado">Peso (kg)</p>
+            <p class="text-4xl font-extrabold tabular-nums my-1">{{ pesoKg() }}</p>
+            <div class="flex gap-2">
+              <button class="flex-1 min-h-13 rounded-xl bg-panel2 text-xl font-bold active:scale-95" (click)="ajustarPeso(-2.5)">−</button>
+              <button class="flex-1 min-h-13 rounded-xl bg-cosmo-suave border border-cosmo text-cosmo text-xl font-bold active:scale-95" (click)="ajustarPeso(2.5)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primario !min-h-16 !text-xl" (click)="completarSerie()">✓ Serie completada</button>
+        <button class="btn-secundario" (click)="saltarEjercicio()">Saltar ejercicio</button>
+      </section>
+    }
+  }
+</div>

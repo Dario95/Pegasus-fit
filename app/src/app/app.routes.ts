@@ -8,6 +8,16 @@ export const routes: Routes = [
     title: 'Pegasus Fit — Tu plan de entrenamiento y dieta',
   },
   {
+    path: 'home',
+    loadComponent: () => import('./features/home/home').then((m) => m.Home),
+    title: 'Inicio',
+  },
+  {
+    path: 'entrenar',
+    loadComponent: () => import('./features/entrenar/entrenar').then((m) => m.Entrenar),
+    title: 'Entrenando',
+  },
+  {
     path: 'rutina',
     loadComponent: () => import('./features/rutina/rutina').then((m) => m.Rutina),
     title: 'Mi Rutina',

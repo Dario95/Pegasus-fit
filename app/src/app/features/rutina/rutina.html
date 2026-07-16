@@ -78,7 +78,7 @@
       </a>
     </section>
 
-    <app-grafico-meta [pesoInicial]="p.anamnesis.pesoKg" [dieta]="p.dieta" />
+    <app-grafico-meta [pesoInicial]="p.anamnesis.pesoKg" [dieta]="p.dieta" [registros]="historial.pesos()" [planInicio]="p.generado" />
 
     @for (dia of p.dias; track dia.nombre; let i = $index) {
       <section class="tarjeta mb-3 overflow-hidden" [class.border-cosmo]="diaAbierto() === i">

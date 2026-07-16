@@ -1,0 +1,87 @@
+<div class="max-w-md mx-auto">
+  <header class="mb-4">
+    <h2 class="text-2xl font-bold">{{ saludo() }} 👋</h2>
+    <p class="text-apagado text-sm">
+      🔥 {{ asistencia.rachaSemanas() }} {{ asistencia.rachaSemanas() === 1 ? 'semana' : 'semanas' }} de racha
+      · esta semana {{ asistencia.sesionesSemana() }}/{{ asistencia.objetivoSemanal() }}
+    </p>
+  </header>
+
+  @if (plan(); as p) {
+    <!-- Entrenamiento de hoy -->
+    @if (proximoDia(); as dia) {
+      <section class="tarjeta p-5 mb-4 bg-gradient-to-br from-cosmo-suave to-panel border-cosmo/40">
+        <p class="text-xs text-apagado uppercase tracking-widest">Te toca</p>
+        <p class="text-2xl font-extrabold mt-0.5">Día {{ dia.idx + 1 }} · {{ dia.nombre }}</p>
+        <p class="text-apagado text-sm mt-0.5 mb-4">{{ dia.ejercicios.length }} ejercicios · descansos con aviso sonoro</p>
+        <a routerLink="/entrenar"
+          class="btn-primario !mt-0 !min-h-16 !text-xl grid place-items-center no-underline">
+          ▶ Empezar entrenamiento
+        </a>
+        @if (asistencia.entrenoHoy()) {
+          <p class="text-xs text-cosmo mt-2 text-center">✓ Hoy ya entrenaste — esto sería sesión extra</p>
+        }
+      </section>
+    }
+
+    <!-- Progreso hacia la meta -->
+    @if (progresoMeta(); as m) {
+      <section class="tarjeta p-4 mb-4">
+        <div class="flex items-baseline justify-between">
+          <p class="text-sm text-apagado">Camino a tu meta</p>
+          <p class="text-sm font-bold text-cosmo">{{ m.pct }}%</p>
+        </div>
+        <div class="h-2.5 rounded-full bg-borde overflow-hidden mt-2">
+          <div class="h-full rounded-full bg-gradient-to-r from-cosmo to-[#5eefff]" [style.width.%]="m.pct"></div>
+        </div>
+        <p class="text-xs text-tenue mt-1.5">{{ m.actual }} kg hoy → {{ m.meta }} kg meta</p>
+      </section>
+    }
+
+    <!-- Registrar peso -->
+    <section class="tarjeta p-4 mb-4">
+      <h3 class="flex items-center gap-2 text-sm text-apagado font-medium mb-2">
+        <app-icono nombre="tendencia" clase="w-4 h-4 text-cosmo" /> Registrar mi peso de hoy
+      </h3>
+      <div class="flex gap-2">
+        <input class="campo !mt-0 flex-1" type="number" inputmode="decimal" min="30" max="300"
+          [ngModel]="pesoNuevo()" (ngModelChange)="pesoNuevo.set($event)"
+          [placeholder]="historial.ultimoPeso() ? 'último: ' + historial.ultimoPeso()!.pesoKg + ' kg' : 'kg'" />
+        <button class="shrink-0 min-w-24 rounded-2xl font-bold text-[#0a192f] bg-gradient-to-r from-cosmo to-[#5eefff] disabled:opacity-35 active:scale-95 transition-transform"
+          [disabled]="!pesoNuevo()" (click)="guardarPeso()">
+          {{ pesoGuardado() ? '✓' : 'Guardar' }}
+        </button>
+      </div>
+      <p class="text-xs text-tenue mt-2">Tus pesajes se dibujan sobre la curva de proyección — pésate 1-2 veces por semana, en ayunas.</p>
+    </section>
+
+    <!-- Accesos rápidos -->
+    <div class="grid grid-cols-2 gap-3 mb-4">
+      <a routerLink="/dieta" class="tarjeta p-4 no-underline text-texto active:scale-[0.98] transition-transform">
+        <app-icono nombre="pastel" clase="w-5 h-5 text-cosmo mb-1.5" />
+        <p class="font-semibold text-sm leading-tight">Mi dieta de hoy</p>
+        <p class="text-xs text-apagado mt-0.5">{{ asistencia.entrenoHoy() ? p.dieta.kcalEntrenamiento : p.dieta.kcalDescanso }} kcal ({{ asistencia.entrenoHoy() ? 'día de gym' : 'descanso' }})</p>
+      </a>
+      <a routerLink="/rutina" class="tarjeta p-4 no-underline text-texto active:scale-[0.98] transition-transform">
+        <app-icono nombre="bolt" clase="w-5 h-5 text-cosmo mb-1.5" />
+        <p class="font-semibold text-sm leading-tight">Mi plan completo</p>
+        <p class="text-xs text-apagado mt-0.5">{{ p.dias.length }} días · cambiar ejercicios</p>
+      </a>
+    </div>
+
+    <!-- Próximamente -->
+    <section class="tarjeta p-4 mb-4 opacity-60">
+      <h3 class="flex items-center gap-2 text-sm text-apagado font-medium">
+        <app-icono nombre="destellos" clase="w-4 h-4" /> Registro de alimentos
+      </h3>
+      <p class="text-xs text-tenue mt-1">Próximamente: foto a tu plato y la IA calcula tus macros.</p>
+    </section>
+  } @else {
+    <section class="text-center pt-10">
+      <img src="logo.png" alt="" class="w-32 mx-auto mb-4 drop-shadow-[0_0_20px_rgba(0,229,255,0.35)]" />
+      <h2 class="text-2xl font-bold mb-2">Empecemos por tu plan</h2>
+      <p class="text-apagado max-w-xs mx-auto mb-6">2 minutos de evaluación y tendrás rutina, dieta y tu fecha meta.</p>
+      <a routerLink="/anamnesis" class="btn-primario !mt-0 grid place-items-center no-underline max-w-72 mx-auto">Hacer mi evaluación</a>
+    </section>
+  }
+</div>

@@ -36,7 +36,7 @@ export class Registro {
     try {
       // El PlanService adopta automáticamente el plan de invitado al entrar la sesión
       await this.auth.registrar(this.nombre().trim(), this.correo().trim(), this.clave());
-      await this.router.navigate(['/rutina']);
+      await this.router.navigate(['/home']);
     } catch (e: unknown) {
       const err = e as { error?: { errors?: { message?: string }[] } };
       this.error.set(err?.error?.errors?.[0]?.message ?? 'No se pudo crear la cuenta. Intenta con otro nombre de usuario.');

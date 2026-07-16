@@ -45,7 +45,7 @@
       <p class="text-xs text-tenue">{{ p.dieta.nota }}</p>
     </section>
 
-    <app-grafico-meta [pesoInicial]="p.anamnesis.pesoKg" [dieta]="p.dieta" />
+    <app-grafico-meta [pesoInicial]="p.anamnesis.pesoKg" [dieta]="p.dieta" [registros]="historial.pesos()" [planInicio]="p.generado" />
 
     <h3 class="text-sm text-apagado font-medium mb-2">Tu día, comida por comida</h3>
     @for (c of comidas(); track c.nombre) {

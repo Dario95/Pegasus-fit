@@ -2,11 +2,11 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
-import { Icono } from '../../core/icono';
+
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, RouterLink, Icono],
+  imports: [FormsModule, RouterLink],
   templateUrl: './login.html',
 })
 export class Login {
@@ -24,7 +24,7 @@ export class Login {
     this.error.set(null);
     try {
       await this.auth.login(this.usuario().trim(), this.clave());
-      await this.router.navigate(['/rutina']);
+      await this.router.navigate(['/home']);
     } catch {
       this.error.set('Usuario o contraseña incorrectos.');
     } finally {

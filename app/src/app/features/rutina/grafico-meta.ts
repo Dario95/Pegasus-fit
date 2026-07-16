@@ -1,4 +1,5 @@
 import { Component, computed, input, signal } from '@angular/core';
+import { RegistroPeso } from '../../core/historial.service';
 import { Dieta } from '../../core/models';
 
 interface Punto {
@@ -23,6 +24,9 @@ interface Punto {
 export class GraficoMeta {
   readonly pesoInicial = input.required<number>();
   readonly dieta = input.required<Dieta>();
+  /** Pesajes reales del usuario: se dibujan como puntos plata sobre la proyección. */
+  readonly registros = input<RegistroPeso[]>([]);
+  readonly planInicio = input<string>('');
 
   // Geometría del lienzo (viewBox)
   readonly W = 340;
@@ -65,6 +69,29 @@ export class GraficoMeta {
     const max = Math.max(...pesos) + 1;
     const ys = (p: number) => this.margen.arr + (1 - (p - min) / (max - min)) * (this.H - this.margen.arr - this.margen.aba);
     return pts.map((p) => ({ ...p, x: xs(p.semana), y: ys(p.peso) }));
+  });
+
+  readonly puntosReales = computed(() => {
+    const pts = this.puntos();
+    const regs = this.registros();
+    const inicio = this.planInicio();
+    if (pts.length < 2 || !regs.length || !inicio) return [];
+    const T = pts[pts.length - 1].semana || 1;
+    const pesos = pts.map((p) => p.peso);
+    const min = Math.min(...pesos) - 1;
+    const max = Math.max(...pesos) + 1;
+    const t0 = new Date(inicio).getTime();
+    return regs
+      .map((r) => {
+        const sem = (new Date(r.fecha + 'T12:00').getTime() - t0) / (7 * 86400_000);
+        if (sem < -0.3 || sem > T + 0.3) return null;
+        const s = Math.max(0, Math.min(T, sem));
+        const x = this.margen.izq + (s / T) * (this.W - this.margen.izq - this.margen.der);
+        const pesoAcotado = Math.min(max, Math.max(min, r.pesoKg));
+        const y = this.margen.arr + (1 - (pesoAcotado - min) / (max - min)) * (this.H - this.margen.arr - this.margen.aba);
+        return { x, y, peso: r.pesoKg };
+      })
+      .filter((p): p is { x: number; y: number; peso: number } => p !== null);
   });
 
   readonly linea = computed(() =>

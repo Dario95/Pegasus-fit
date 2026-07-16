@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { HistorialService } from '../../core/historial.service';
 import { Icono } from '../../core/icono';
 import { PlanService } from '../../core/plan.service';
 import { GraficoMeta } from '../rutina/grafico-meta';
@@ -31,6 +32,7 @@ const COMIDAS: Comida[] = [
 export class DietaPagina {
   private planService = inject(PlanService);
   private http = inject(HttpClient);
+  readonly historial = inject(HistorialService);
 
   readonly plan = this.planService.plan;
 

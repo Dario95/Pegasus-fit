@@ -144,7 +144,7 @@ export class Anamnesis {
 
     try {
       await this.planService.generar(anamnesis);
-      await this.router.navigate(['/rutina']);
+      await this.router.navigate(['/home']);
     } catch (e) {
       this.error.set('No se pudo generar el plan. Verifica la conexión con el servidor e intenta de nuevo.');
       console.error(e);

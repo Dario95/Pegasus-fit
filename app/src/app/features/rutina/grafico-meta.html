@@ -43,6 +43,11 @@
       <path [attr.d]="area()" fill="#0899b2" opacity="0.08" />
       <path [attr.d]="linea()" fill="none" stroke="#0899b2" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round" />
 
+      <!-- Pesajes reales del usuario (puntos plata) -->
+      @for (r of puntosReales(); track $index) {
+        <circle [attr.cx]="r.x" [attr.cy]="r.y" r="4" fill="#e2e8f0" stroke="#112240" stroke-width="2" />
+      }
+
       <!-- Anotación del escalón inicial (agua + glucógeno) -->
       @if (puntos().length > 3 && dieta().cambioSemanalKg! < 0) {
         <text [attr.x]="puntos()[1].x + 5" [attr.y]="puntos()[1].y + 12" font-size="8.5" fill="#9ca3af" font-style="italic">↓ agua y glucógeno</text>
@@ -60,7 +65,9 @@
 
         <!-- Etiquetas de tiempo -->
         <text [attr.x]="pts[0].x" [attr.y]="H - 8" font-size="9" fill="#6b7280">hoy</text>
-        <text [attr.x]="(W + margen.izq - margen.der) / 2" [attr.y]="H - 8" text-anchor="middle" font-size="8" fill="#4b5563">··· recta ingenua vs curva real</text>
+        <text [attr.x]="(W + margen.izq - margen.der) / 2" [attr.y]="H - 8" text-anchor="middle" font-size="8" fill="#4b5563">
+          {{ puntosReales().length ? '● tus pesajes · línea = proyección' : '··· recta ingenua vs curva real' }}
+        </text>
         <text [attr.x]="pts[pts.length - 1].x" [attr.y]="H - 8" text-anchor="end" font-size="9" fill="#6b7280">
           {{ formatoCorto(pts[pts.length - 1].fecha) }}
         </text>

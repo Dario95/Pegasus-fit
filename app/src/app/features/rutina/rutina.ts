@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AsistenciaService } from '../../core/asistencia.service';
+import { HistorialService } from '../../core/historial.service';
 import { Icono } from '../../core/icono';
 import { EjercicioPlan } from '../../core/models';
 import { PlanService } from '../../core/plan.service';
@@ -16,6 +17,7 @@ import { GraficoMeta } from './grafico-meta';
 export class Rutina {
   private planService = inject(PlanService);
   readonly asistencia = inject(AsistenciaService);
+  readonly historial = inject(HistorialService);
 
   readonly plan = this.planService.plan;
   readonly diaAbierto = signal(0);
