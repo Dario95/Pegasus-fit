@@ -3,43 +3,99 @@ import { Anamnesis, DiaPlan, Dieta, EjercicioPlan, Plan } from './models';
 import { CAT, EjercicioCatalogo, WgerService } from './wger.service';
 
 /**
- * Motor de plan del MVP. Vive en la app por ahora; la spec (§3.3, §4) lo ubica
- * en el BFF como servicio — migrarlo ahí en fase 2 sin cambiar el contrato.
+ * Motor de plan v2 — basado en evidencia. Referencias completas en docs/REFERENCIAS.md.
+ *
+ * Entrenamiento:
+ *  [1] Schoenfeld, Ogborn & Krieger (2016) J Sports Sci — frecuencia ≥2×/semana por
+ *      grupo muscular supera 1× para hipertrofia → plantillas Full Body y Upper/Lower
+ *      en vez de PPL puro para frecuencias bajas.
+ *  [2] Schoenfeld, Ogborn & Krieger (2017) J Sports Sci — dosis-respuesta: ≥10 series
+ *      semanales por músculo > <10; el volumen semanal es el driver principal.
+ *  [3] Schoenfeld et al. (2016) J Strength Cond Res — descansos de 3 min superan 1 min
+ *      en fuerza e hipertrofia en multiarticulares → 150-180 s compuestos, 90 s aislados.
+ *  [4] Grgic et al. (2022) J Sport Health Sci — entrenar cerca del fallo (RIR 0-3) es
+ *      suficiente; el fallo absoluto no aporta extra y cuesta recuperación → RIR objetivo.
+ *  [5] Schoenfeld et al. (2021) Sports Med — hipertrofia similar en rangos amplios de
+ *      carga si el esfuerzo es alto; 6-12 reps es lo práctico en sala; resistencia
+ *      muscular/acondicionamiento tolera 12-15.
+ *
+ * Dieta:
+ *  [6] Mifflin et al. (1990) Am J Clin Nutr + Frankenfield et al. (2005, revisión ADA) —
+ *      Mifflin-St Jeor es la ecuación más precisa en adultos → BMR.
+ *  [7] Morton et al. (2018) Br J Sports Med, metaanálisis — beneficio de proteína hasta
+ *      ~1.6 g/kg/d (IC superior ~2.2) para masa magra con entrenamiento de fuerza.
+ *  [8] Helms et al. (2014) JISSN — en déficit, 2.3-3.1 g/kg de masa magra protege el
+ *      músculo → usamos 2.3 g/kg en pérdida de grasa.
+ *  [9] Garthe et al. (2011) IJSNEM — pérdida semanal lenta (~0.7 %/sem) conserva más
+ *      masa magra que pérdida agresiva → déficit moderado ~20 %.
+ * [10] Iraki et al. (2019) Sports (Basel), revisión — superávit pequeño (~10 %,
+ *      250-500 kcal) para ganancia con mínimo acúmulo de grasa; grasa dietaria
+ *      0.5-1.5 g/kg, nunca <20 % de las kcal.
+ * [11] Schoenfeld & Aragon (2018) JISSN — distribución de proteína: ~0.4 g/kg por
+ *      comida en ≥4 comidas maximiza la síntesis proteica.
  */
 
 const STORAGE_KEY = 'pegasus.plan';
 
-/** Cuota de ejercicios por categoría para cada día según frecuencia (spec §1.2b). */
-const PLANTILLAS: Record<number, { nombre: string; cuotas: [number, number][] }[]> = {
+interface DiaPlantilla {
+  nombre: string;
+  cuotas: [number, number][]; // [categoría wger, nº de ejercicios]
+}
+
+/**
+ * Plantillas por frecuencia. Diseño guiado por [1] (cada músculo ≥2×/semana) y [2]
+ * (volumen semanal por músculo en el rango 10-20 series al combinar días × series).
+ * 3 días = Full Body A/B/C (frecuencia 3×) — evidencia sobre PPL 1× por músculo [1].
+ */
+const PLANTILLAS: Record<number, DiaPlantilla[]> = {
   2: [
-    { nombre: 'Full Body A', cuotas: [[CAT.PECHO, 1], [CAT.ESPALDA, 1], [CAT.PIERNAS, 2], [CAT.HOMBROS, 1], [CAT.ABS, 1]] },
-    { nombre: 'Full Body B', cuotas: [[CAT.PECHO, 1], [CAT.ESPALDA, 2], [CAT.PIERNAS, 1], [CAT.BRAZOS, 1], [CAT.ABS, 1]] },
+    { nombre: 'Full Body A', cuotas: [[CAT.PIERNAS, 2], [CAT.PECHO, 1], [CAT.ESPALDA, 1], [CAT.HOMBROS, 1], [CAT.ABS, 1]] },
+    { nombre: 'Full Body B', cuotas: [[CAT.PIERNAS, 2], [CAT.ESPALDA, 2], [CAT.PECHO, 1], [CAT.BRAZOS, 1]] },
   ],
   3: [
-    { nombre: 'Empuje', cuotas: [[CAT.PECHO, 2], [CAT.HOMBROS, 2], [CAT.BRAZOS, 1], [CAT.ABS, 1]] },
-    { nombre: 'Tirón', cuotas: [[CAT.ESPALDA, 3], [CAT.BRAZOS, 2], [CAT.ABS, 1]] },
-    { nombre: 'Pierna', cuotas: [[CAT.PIERNAS, 4], [CAT.PANTORRILLAS, 1], [CAT.ABS, 1]] },
+    { nombre: 'Full Body A', cuotas: [[CAT.PIERNAS, 2], [CAT.PECHO, 1], [CAT.ESPALDA, 1], [CAT.HOMBROS, 1], [CAT.ABS, 1]] },
+    { nombre: 'Full Body B', cuotas: [[CAT.PIERNAS, 2], [CAT.ESPALDA, 2], [CAT.PECHO, 1], [CAT.BRAZOS, 1]] },
+    { nombre: 'Full Body C', cuotas: [[CAT.PIERNAS, 2], [CAT.PECHO, 1], [CAT.ESPALDA, 1], [CAT.PANTORRILLAS, 1], [CAT.ABS, 1]] },
   ],
   4: [
     { nombre: 'Tren Superior A', cuotas: [[CAT.PECHO, 2], [CAT.ESPALDA, 2], [CAT.HOMBROS, 1], [CAT.BRAZOS, 1]] },
     { nombre: 'Tren Inferior A', cuotas: [[CAT.PIERNAS, 4], [CAT.PANTORRILLAS, 1], [CAT.ABS, 1]] },
-    { nombre: 'Tren Superior B', cuotas: [[CAT.PECHO, 2], [CAT.ESPALDA, 2], [CAT.HOMBROS, 1], [CAT.BRAZOS, 1]] },
+    { nombre: 'Tren Superior B', cuotas: [[CAT.ESPALDA, 2], [CAT.PECHO, 2], [CAT.HOMBROS, 1], [CAT.BRAZOS, 1]] },
     { nombre: 'Tren Inferior B', cuotas: [[CAT.PIERNAS, 3], [CAT.PANTORRILLAS, 1], [CAT.ABS, 2]] },
   ],
   5: [
-    { nombre: 'Empuje', cuotas: [[CAT.PECHO, 2], [CAT.HOMBROS, 2], [CAT.BRAZOS, 1]] },
+    { nombre: 'Tren Superior', cuotas: [[CAT.PECHO, 2], [CAT.ESPALDA, 2], [CAT.HOMBROS, 1], [CAT.BRAZOS, 1]] },
+    { nombre: 'Tren Inferior', cuotas: [[CAT.PIERNAS, 4], [CAT.PANTORRILLAS, 1]] },
+    { nombre: 'Empuje', cuotas: [[CAT.PECHO, 2], [CAT.HOMBROS, 2], [CAT.BRAZOS, 1], [CAT.ABS, 1]] },
     { nombre: 'Tirón', cuotas: [[CAT.ESPALDA, 3], [CAT.BRAZOS, 2]] },
-    { nombre: 'Pierna', cuotas: [[CAT.PIERNAS, 4], [CAT.PANTORRILLAS, 1]] },
-    { nombre: 'Tren Superior', cuotas: [[CAT.PECHO, 1], [CAT.ESPALDA, 1], [CAT.HOMBROS, 1], [CAT.BRAZOS, 1], [CAT.ABS, 1]] },
-    { nombre: 'Tren Inferior', cuotas: [[CAT.PIERNAS, 3], [CAT.PANTORRILLAS, 1], [CAT.ABS, 1]] },
+    { nombre: 'Pierna + Core', cuotas: [[CAT.PIERNAS, 3], [CAT.PANTORRILLAS, 1], [CAT.ABS, 2]] },
   ],
 };
 
-const ESQUEMA_SERIES = {
-  principiante: { series: 3, reps: '8–12', descansoSeg: 90 },
-  intermedio: { series: 4, reps: '8–12', descansoSeg: 90 },
-  avanzado: { series: 4, reps: '6–10', descansoSeg: 120 },
+/** Series por ejercicio según experiencia — el volumen total queda dentro de 10-20 series/músculo/semana [2]. */
+const SERIES = { principiante: 3, intermedio: 3, avanzado: 4 } as const;
+
+/** RIR objetivo (repeticiones en reserva) [4]. */
+const RIR = { principiante: '2–3', intermedio: '1–3', avanzado: '0–2' } as const;
+
+/** Reps según objetivo [5]. */
+const REPS = {
+  hipertrofia: '6–12',
+  perdida_grasa: '8–12',
+  acondicionamiento: '12–15',
 } as const;
+
+/** Descanso por categoría: compuestos pesados 180 s, medios 120 s, aislados 90 s [3]. */
+const DESCANSO_POR_CATEGORIA: Record<number, number> = {
+  [CAT.PIERNAS]: 180,
+  [CAT.ESPALDA]: 150,
+  [CAT.PECHO]: 150,
+  [CAT.HOMBROS]: 120,
+  [CAT.BRAZOS]: 90,
+  [CAT.ABS]: 90,
+  [CAT.PANTORRILLAS]: 90,
+  [CAT.CARDIO]: 60,
+};
 
 @Injectable({ providedIn: 'root' })
 export class PlanService {
@@ -72,7 +128,8 @@ export class PlanService {
 
   private async generarRutina(a: Anamnesis): Promise<DiaPlan[]> {
     const plantilla = PLANTILLAS[a.diasSemana];
-    const esquema = ESQUEMA_SERIES[a.experiencia];
+    const series = SERIES[a.experiencia];
+    const reps = REPS[a.objetivo];
     const usados = new Set<number>();
     const dias: DiaPlan[] = [];
 
@@ -86,7 +143,9 @@ export class PlanService {
             nombre: ej.nombre,
             imagen: ej.imagen,
             video: ej.video,
-            ...esquema,
+            series,
+            reps: `${reps} · RIR ${RIR[a.experiencia]}`,
+            descansoSeg: DESCANSO_POR_CATEGORIA[categoria] ?? 90,
           });
         }
       }
@@ -95,7 +154,6 @@ export class PlanService {
     return dias;
   }
 
-  /** Elige n ejercicios no repetidos en el plan, al azar para variar entre generaciones. */
   private elegir(catalogo: EjercicioCatalogo[], n: number, usados: Set<number>): EjercicioCatalogo[] {
     const disponibles = catalogo.filter((e) => !usados.has(e.id));
     const barajados = [...disponibles].sort(() => Math.random() - 0.5);
@@ -104,22 +162,29 @@ export class PlanService {
     return elegidos;
   }
 
-  /** Estándares: Mifflin-St Jeor + multiplicador TDEE + macros ISSN (spec §4). */
   private calcularDieta(a: Anamnesis): Dieta {
+    // BMR: Mifflin-St Jeor [6]
     const s = a.sexo === 'masculino' ? 5 : -161;
     const bmr = Math.round(10 * a.pesoKg + 6.25 * a.tallaCm - 5 * a.edad + s);
     const factor = { 2: 1.375, 3: 1.465, 4: 1.55, 5: 1.725 }[a.diasSemana];
     const tdee = Math.round(bmr * factor);
 
-    const ajuste = { hipertrofia: 1.12, perdida_grasa: 0.83, acondicionamiento: 1.0 }[a.objetivo];
+    // Superávit ~10 % [10] · déficit ~20 % (pérdida lenta) [9]
+    const ajuste = { hipertrofia: 1.1, perdida_grasa: 0.8, acondicionamiento: 1.0 }[a.objetivo];
     let kcal = Math.round(tdee * ajuste);
-    // Piso de seguridad sin supervisión profesional (spec §4.2)
     const piso = a.sexo === 'masculino' ? 1500 : 1200;
     kcal = Math.max(kcal, piso);
 
-    const proteinaG = Math.round((a.objetivo === 'perdida_grasa' ? 2.2 : 1.8) * a.pesoKg);
-    const grasaG = Math.round(0.9 * a.pesoKg);
+    // Proteína: 1.6-2.2 g/kg [7]; en déficit 2.3 g/kg [8]
+    const proteinaPorKg = { hipertrofia: 1.8, perdida_grasa: 2.3, acondicionamiento: 1.6 }[a.objetivo];
+    const proteinaG = Math.round(proteinaPorKg * a.pesoKg);
+
+    // Grasa: 0.8 g/kg, nunca <20 % de las kcal [10]
+    let grasaG = Math.round(0.8 * a.pesoKg);
+    grasaG = Math.max(grasaG, Math.round((kcal * 0.2) / 9));
+
     const carbohidratosG = Math.max(0, Math.round((kcal - proteinaG * 4 - grasaG * 9) / 4));
+    const comidas = 4; // distribución de proteína ~0.4 g/kg por comida [11]
 
     return {
       bmr,
@@ -128,7 +193,9 @@ export class PlanService {
       proteinaG,
       grasaG,
       carbohidratosG,
-      nota: 'Orientación general, no prescripción. Ante condiciones médicas o dudas, consulta a un profesional de la nutrición.',
+      nota:
+        `Reparte la proteína en ~${comidas} comidas (${Math.round(proteinaG / comidas)} g c/u). ` +
+        'Orientación general basada en evidencia (ver Referencias) — no sustituye a un profesional de la nutrición.',
     };
   }
 }

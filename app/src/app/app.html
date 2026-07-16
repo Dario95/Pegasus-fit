@@ -1,9 +1,9 @@
-<main class="shell">
+<main class="flex-1 overflow-y-auto p-4">
   <router-outlet />
 </main>
 
-<nav class="tabbar">
-  <a routerLink="/rutina" routerLinkActive="active">🏋️ Rutina</a>
-  <a routerLink="/acceso" routerLinkActive="active">🎟️ Acceso</a>
-  <a routerLink="/anamnesis" routerLinkActive="active">📋 Evaluación</a>
+<nav class="flex border-t border-borde bg-panel pb-[env(safe-area-inset-bottom)]">
+  <a routerLink="/rutina" routerLinkActive="tab-activa" class="tab">🏋️<span>Rutina</span></a>
+  <a routerLink="/acceso" routerLinkActive="tab-activa" class="tab">🎟️<span>Acceso</span></a>
+  <a routerLink="/anamnesis" routerLinkActive="tab-activa" class="tab">📋<span>Evaluación</span></a>
 </nav>

@@ -1,0 +1,44 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-fondo: #0b0c10;
+  --color-panel: #15161c;
+  --color-panel2: #1c1d25;
+  --color-borde: #262832;
+  --color-texto: #f4f4f5;
+  --color-apagado: #9ca3af;
+  --color-tenue: #6b7280;
+  --color-acento: #f97316;
+  --color-acento-suave: #2b1a0d;
+}
+
+@layer components {
+  /* Botón píldora táctil (spec UX: targets ≥56dp, feedback físico) */
+  .pildora {
+    @apply flex-1 min-h-14 px-4 rounded-2xl border border-borde bg-panel text-texto
+      text-left text-base transition-transform duration-75 active:scale-[0.97];
+  }
+  .pildora-activa {
+    @apply border-acento bg-acento-suave font-semibold;
+  }
+
+  .btn-primario {
+    @apply block w-full min-h-14 mt-6 rounded-2xl border-none bg-acento text-[#14100b]
+      text-lg font-bold transition-transform duration-75 active:scale-[0.98]
+      disabled:opacity-35 disabled:active:scale-100;
+  }
+
+  .btn-secundario {
+    @apply block w-full min-h-12 mt-3 rounded-2xl border border-borde bg-transparent text-apagado;
+  }
+
+  .tarjeta {
+    @apply rounded-2xl border border-borde bg-panel;
+  }
+
+  .campo {
+    @apply block w-full mt-1.5 min-h-14 px-4 text-xl rounded-2xl border border-borde
+      bg-panel text-texto placeholder:text-tenue
+      focus:outline-2 focus:outline-acento focus:border-transparent;
+  }
+}

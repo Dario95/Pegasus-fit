@@ -1,53 +1,83 @@
-@if (plan(); as p) {
-  <header class="encabezado">
-    <div>
-      <h2>Tu plan</h2>
-      <p class="sub">{{ etiquetaObjetivo[p.anamnesis.objetivo] }} · {{ p.anamnesis.diasSemana }} días/semana · {{ p.anamnesis.experiencia }}</p>
-    </div>
-    <button class="link" (click)="regenerar()">Rehacer</button>
-  </header>
+<div class="max-w-xl mx-auto">
+  @if (plan(); as p) {
+    <header class="flex justify-between items-start mb-4">
+      <div>
+        <h2 class="text-2xl font-bold">Tu plan</h2>
+        <p class="text-apagado text-sm capitalize">
+          {{ etiquetaObjetivo[p.anamnesis.objetivo] }} · {{ p.anamnesis.diasSemana }} días/semana · {{ p.anamnesis.experiencia }}
+        </p>
+      </div>
+      <button class="bg-transparent border-none text-acento min-h-11 text-sm" (click)="regenerar()">Rehacer</button>
+    </header>
 
-  <section class="dieta">
-    <h3>🍽️ Tu dieta diaria</h3>
-    <div class="kcal">{{ p.dieta.kcalObjetivo }} <span>kcal</span></div>
-    <div class="macros">
-      <div><strong>{{ p.dieta.proteinaG }}g</strong><span>proteína</span></div>
-      <div><strong>{{ p.dieta.carbohidratosG }}g</strong><span>carbohidratos</span></div>
-      <div><strong>{{ p.dieta.grasaG }}g</strong><span>grasa</span></div>
-    </div>
-    <p class="detalle">Gasto basal {{ p.dieta.bmr }} kcal · mantenimiento {{ p.dieta.tdee }} kcal</p>
-    <p class="nota">{{ p.dieta.nota }}</p>
-  </section>
+    <section class="tarjeta p-5 mb-5 bg-gradient-to-br from-panel to-panel2">
+      <h3 class="text-sm text-apagado font-medium">🍽️ Tu dieta diaria</h3>
+      <div class="text-4xl font-extrabold my-1">
+        {{ p.dieta.kcalObjetivo }} <span class="text-base font-normal text-apagado">kcal</span>
+      </div>
+      <div class="flex gap-3 my-3">
+        <div class="flex-1 rounded-xl bg-fondo/60 p-2.5 text-center">
+          <strong class="block text-lg">{{ p.dieta.proteinaG }}g</strong>
+          <span class="text-xs text-apagado">proteína</span>
+        </div>
+        <div class="flex-1 rounded-xl bg-fondo/60 p-2.5 text-center">
+          <strong class="block text-lg">{{ p.dieta.carbohidratosG }}g</strong>
+          <span class="text-xs text-apagado">carbos</span>
+        </div>
+        <div class="flex-1 rounded-xl bg-fondo/60 p-2.5 text-center">
+          <strong class="block text-lg">{{ p.dieta.grasaG }}g</strong>
+          <span class="text-xs text-apagado">grasa</span>
+        </div>
+      </div>
+      <p class="text-xs text-tenue">Gasto basal {{ p.dieta.bmr }} kcal · mantenimiento {{ p.dieta.tdee }} kcal</p>
+      <p class="text-xs text-tenue italic mt-2 leading-relaxed">{{ p.dieta.nota }}</p>
+    </section>
 
-  @for (dia of p.dias; track dia.nombre; let i = $index) {
-    <section class="dia" [class.abierto]="diaAbierto() === i">
-      <button class="dia-titulo" (click)="toggleDia(i)">
-        <span>Día {{ i + 1 }} · {{ dia.nombre }}</span>
-        <span class="conteo">{{ dia.ejercicios.length }} ejercicios {{ diaAbierto() === i ? '▲' : '▼' }}</span>
-      </button>
-      @if (diaAbierto() === i) {
-        <ul>
-          @for (ej of dia.ejercicios; track ej.wgerId) {
-            <li class="ejercicio">
-              @if (ej.video) {
-                <video [src]="ej.video" [poster]="ej.imagen ?? ''" autoplay loop muted playsinline></video>
-              } @else if (ej.imagen) {
-                <img [src]="ej.imagen" [alt]="ej.nombre" loading="lazy" />
-              }
-              <div class="info">
-                <p class="nombre">{{ ej.nombre }}</p>
-                <p class="esquema">{{ ej.series }} series × {{ ej.reps }} reps · descanso {{ ej.descansoSeg }}s</p>
-              </div>
-            </li>
-          }
-        </ul>
-      }
+    @for (dia of p.dias; track dia.nombre; let i = $index) {
+      <section class="tarjeta mb-3 overflow-hidden" [class.border-acento]="diaAbierto() === i">
+        <button class="flex justify-between items-center w-full min-h-15 px-4 bg-transparent border-none text-texto font-semibold text-base"
+          (click)="toggleDia(i)">
+          <span>Día {{ i + 1 }} · {{ dia.nombre }}</span>
+          <span class="text-apagado text-xs font-normal">{{ dia.ejercicios.length }} ejercicios {{ diaAbierto() === i ? '▲' : '▼' }}</span>
+        </button>
+        @if (diaAbierto() === i) {
+          <ul class="px-4 pb-3 list-none">
+            @for (ej of dia.ejercicios; track ej.wgerId) {
+              <li class="flex gap-3.5 items-center py-2.5 border-t border-panel2">
+                @if (ej.video) {
+                  <video class="w-20 h-20 rounded-xl object-cover bg-fondo shrink-0"
+                    [src]="ej.video" [poster]="ej.imagen ?? ''" autoplay loop muted playsinline></video>
+                } @else if (ej.imagen) {
+                  <img class="w-20 h-20 rounded-xl object-cover bg-fondo shrink-0"
+                    [src]="ej.imagen" [alt]="ej.nombre" loading="lazy" />
+                }
+                <div>
+                  <p class="font-semibold leading-tight">{{ ej.nombre }}</p>
+                  <p class="text-apagado text-sm mt-1">
+                    {{ ej.series }} × {{ ej.reps }}
+                  </p>
+                  <p class="text-tenue text-xs mt-0.5">descanso {{ ej.descansoSeg }}s</p>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
+
+    <p class="text-center text-xs text-tenue my-5">
+      Plan generado con criterios de evidencia — ver <span class="text-apagado">docs/REFERENCIAS.md</span>
+    </p>
+  } @else {
+    <section class="text-center pt-14">
+      <div class="text-6xl mb-4">📋</div>
+      <h2 class="text-2xl font-bold mb-2">Aún no tienes un plan</h2>
+      <p class="text-apagado max-w-xs mx-auto mb-8 leading-relaxed">
+        Responde la evaluación inicial y te armamos rutina y dieta a tu medida,
+        con los ejercicios del catálogo Pegasus.
+      </p>
+      <a class="inline-block px-7 py-4 rounded-2xl bg-acento text-[#14100b] font-bold no-underline active:scale-[0.97] transition-transform"
+        routerLink="/anamnesis">Hacer mi evaluación</a>
     </section>
   }
-} @else {
-  <section class="vacio">
-    <h2>Aún no tienes un plan</h2>
-    <p>Responde la evaluación inicial y te armamos rutina y dieta a tu medida, con los ejercicios del catálogo Pegasus.</p>
-    <a class="primario" routerLink="/anamnesis">📋 Hacer mi evaluación</a>
-  </section>
-}
+</div>

@@ -1,92 +1,105 @@
-<header class="progreso">
-  <button class="atras" (click)="atras()" [disabled]="paso() === 0">←</button>
-  <span>Paso {{ paso() + 1 }} de 3</span>
-  <div class="barra"><div class="relleno" [style.width.%]="((paso() + 1) / 3) * 100"></div></div>
-</header>
+<div class="max-w-md mx-auto">
+  <header class="flex items-center gap-3 mb-5 text-sm text-apagado">
+    <button class="bg-transparent border-none text-texto text-2xl min-w-11 min-h-11 disabled:opacity-25"
+      (click)="atras()" [disabled]="paso() === 0">←</button>
+    <span class="whitespace-nowrap">Paso {{ paso() + 1 }} de 3</span>
+    <div class="flex-1 h-1 rounded-full bg-borde overflow-hidden">
+      <div class="h-full bg-acento transition-all duration-300" [style.width.%]="((paso() + 1) / 3) * 100"></div>
+    </div>
+  </header>
 
-@if (paso() === 0) {
-  @if (bloqueado()) {
-    <section class="contencion">
-      <h2>Queremos cuidarte 💙</h2>
-      <p>
-        Por alguna de tus respuestas, preferimos que un instructor te evalúe en persona antes de
-        asignarte una rutina automática. No es un rechazo: es el camino seguro para empezar.
-      </p>
-      <button class="primario">Entendido, reservar apoyo en sala</button>
-      <button class="secundario" (click)="reiniciarSalud()">Revisar mis respuestas</button>
-    </section>
-  } @else {
-    <section>
-      <h2>Antes de empezar, tu salud</h2>
-      <p class="ayuda">Responde con honestidad — esto define si podemos asignarte rutina automática.</p>
-      @for (p of preguntas; track p.id) {
-        <div class="pregunta">
-          <p>{{ p.texto }}</p>
-          <div class="opciones-si-no">
-            <button
-              [class.activa]="salud()[p.id] === false"
-              (click)="responderSalud(p.id, false)">No</button>
-            <button
-              [class.activa]="salud()[p.id] === true"
-              (click)="responderSalud(p.id, true)">Sí</button>
+  @if (paso() === 0) {
+    @if (bloqueado()) {
+      <section class="text-center pt-10">
+        <div class="text-5xl mb-4">💙</div>
+        <h2 class="text-2xl font-bold mb-3">Queremos cuidarte</h2>
+        <p class="text-apagado leading-relaxed max-w-xs mx-auto mb-8">
+          Por alguna de tus respuestas, preferimos que un instructor te evalúe en persona antes de
+          asignarte una rutina automática. No es un rechazo: es el camino seguro para empezar.
+        </p>
+        <button class="btn-primario">Entendido, reservar apoyo en sala</button>
+        <button class="btn-secundario" (click)="reiniciarSalud()">Revisar mis respuestas</button>
+      </section>
+    } @else {
+      <section>
+        <h2 class="text-2xl font-bold">Antes de empezar, tu salud</h2>
+        <p class="text-apagado mt-1 mb-4 text-sm">
+          Responde con honestidad — esto define si podemos asignarte rutina automática.
+        </p>
+        @for (p of preguntas; track p.id) {
+          <div class="py-3.5 border-b border-panel2">
+            <p class="mb-2.5 leading-snug">{{ p.texto }}</p>
+            <div class="flex gap-2.5">
+              <button class="pildora !text-center min-h-13"
+                [class.pildora-activa]="salud()[p.id] === false"
+                (click)="responderSalud(p.id, false)">No</button>
+              <button class="pildora !text-center min-h-13"
+                [class.pildora-activa]="salud()[p.id] === true"
+                (click)="responderSalud(p.id, true)">Sí</button>
+            </div>
           </div>
-        </div>
-      }
-      <button class="primario" [disabled]="!saludCompleta()" (click)="continuarSalud()">
-        Continuar
+        }
+        <button class="btn-primario" [disabled]="!saludCompleta()" (click)="continuarSalud()">
+          Continuar
+        </button>
+      </section>
+    }
+  }
+
+  @if (paso() === 1) {
+    <section>
+      <h2 class="text-2xl font-bold mb-4">Sobre ti</h2>
+      <div class="flex gap-2.5 mb-2">
+        <button class="pildora !text-center" [class.pildora-activa]="sexo() === 'masculino'" (click)="sexo.set('masculino')">Hombre</button>
+        <button class="pildora !text-center" [class.pildora-activa]="sexo() === 'femenino'" (click)="sexo.set('femenino')">Mujer</button>
+      </div>
+      <label class="block my-4 text-sm text-apagado">Edad
+        <input class="campo" type="number" inputmode="numeric" min="16" max="90"
+          [ngModel]="edad()" (ngModelChange)="edad.set($event)" placeholder="años" />
+      </label>
+      <label class="block my-4 text-sm text-apagado">Peso
+        <input class="campo" type="number" inputmode="decimal" min="35" max="250"
+          [ngModel]="pesoKg()" (ngModelChange)="pesoKg.set($event)" placeholder="kg" />
+      </label>
+      <label class="block my-4 text-sm text-apagado">Estatura
+        <input class="campo" type="number" inputmode="numeric" min="130" max="220"
+          [ngModel]="tallaCm()" (ngModelChange)="tallaCm.set($event)" placeholder="cm" />
+      </label>
+      <button class="btn-primario" [disabled]="!datosCompletos()" (click)="paso.set(2)">Continuar</button>
+    </section>
+  }
+
+  @if (paso() === 2) {
+    <section>
+      <h2 class="text-2xl font-bold">Tu meta</h2>
+
+      <p class="text-apagado mt-4 mb-2 text-sm">¿Qué buscas lograr?</p>
+      <div class="flex flex-col gap-2.5">
+        <button class="pildora" [class.pildora-activa]="objetivo() === 'hipertrofia'" (click)="objetivo.set('hipertrofia')">💪 Ganar músculo</button>
+        <button class="pildora" [class.pildora-activa]="objetivo() === 'perdida_grasa'" (click)="objetivo.set('perdida_grasa')">🔥 Perder grasa</button>
+        <button class="pildora" [class.pildora-activa]="objetivo() === 'acondicionamiento'" (click)="objetivo.set('acondicionamiento')">🫀 Acondicionamiento general</button>
+      </div>
+
+      <p class="text-apagado mt-5 mb-2 text-sm">¿Cuántos días a la semana puedes entrenar?</p>
+      <div class="flex gap-2.5">
+        @for (d of [2, 3, 4, 5]; track d) {
+          <button class="pildora !text-center text-lg font-semibold"
+            [class.pildora-activa]="diasSemana() === d" (click)="diasSemana.set($any(d))">{{ d }}</button>
+        }
+      </div>
+
+      <p class="text-apagado mt-5 mb-2 text-sm">Tu experiencia con las pesas</p>
+      <div class="flex flex-col gap-2.5">
+        <button class="pildora" [class.pildora-activa]="experiencia() === 'principiante'" (click)="experiencia.set('principiante')">🌱 Principiante <span class="text-apagado text-sm">· menos de 1 año</span></button>
+        <button class="pildora" [class.pildora-activa]="experiencia() === 'intermedio'" (click)="experiencia.set('intermedio')">🏋️ Intermedio <span class="text-apagado text-sm">· 1–3 años</span></button>
+        <button class="pildora" [class.pildora-activa]="experiencia() === 'avanzado'" (click)="experiencia.set('avanzado')">🦾 Avanzado <span class="text-apagado text-sm">· 3+ años</span></button>
+      </div>
+
+      @if (error()) { <p class="text-red-400 mt-4">{{ error() }}</p> }
+
+      <button class="btn-primario" [disabled]="!metasCompletas() || generando()" (click)="generar()">
+        {{ generando() ? 'Generando tu plan…' : 'Generar mi rutina y dieta' }}
       </button>
     </section>
   }
-}
-
-@if (paso() === 1) {
-  <section>
-    <h2>Sobre ti</h2>
-    <div class="pildoras">
-      <button [class.activa]="sexo() === 'masculino'" (click)="sexo.set('masculino')">Hombre</button>
-      <button [class.activa]="sexo() === 'femenino'" (click)="sexo.set('femenino')">Mujer</button>
-    </div>
-    <label>Edad
-      <input type="number" inputmode="numeric" min="16" max="90" [ngModel]="edad()" (ngModelChange)="edad.set($event)" placeholder="años" />
-    </label>
-    <label>Peso
-      <input type="number" inputmode="decimal" min="35" max="250" [ngModel]="pesoKg()" (ngModelChange)="pesoKg.set($event)" placeholder="kg" />
-    </label>
-    <label>Estatura
-      <input type="number" inputmode="numeric" min="130" max="220" [ngModel]="tallaCm()" (ngModelChange)="tallaCm.set($event)" placeholder="cm" />
-    </label>
-    <button class="primario" [disabled]="!datosCompletos()" (click)="paso.set(2)">Continuar</button>
-  </section>
-}
-
-@if (paso() === 2) {
-  <section>
-    <h2>Tu meta</h2>
-    <p class="ayuda">¿Qué buscas lograr?</p>
-    <div class="pildoras columna">
-      <button [class.activa]="objetivo() === 'hipertrofia'" (click)="objetivo.set('hipertrofia')">💪 Ganar músculo</button>
-      <button [class.activa]="objetivo() === 'perdida_grasa'" (click)="objetivo.set('perdida_grasa')">🔥 Perder grasa</button>
-      <button [class.activa]="objetivo() === 'acondicionamiento'" (click)="objetivo.set('acondicionamiento')">🫀 Acondicionamiento general</button>
-    </div>
-
-    <p class="ayuda">¿Cuántos días a la semana puedes entrenar?</p>
-    <div class="pildoras">
-      @for (d of [2, 3, 4, 5]; track d) {
-        <button [class.activa]="diasSemana() === d" (click)="diasSemana.set($any(d))">{{ d }}</button>
-      }
-    </div>
-
-    <p class="ayuda">Tu experiencia con las pesas</p>
-    <div class="pildoras columna">
-      <button [class.activa]="experiencia() === 'principiante'" (click)="experiencia.set('principiante')">🌱 Principiante (menos de 1 año)</button>
-      <button [class.activa]="experiencia() === 'intermedio'" (click)="experiencia.set('intermedio')">🏋️ Intermedio (1–3 años)</button>
-      <button [class.activa]="experiencia() === 'avanzado'" (click)="experiencia.set('avanzado')">🦾 Avanzado (3+ años)</button>
-    </div>
-
-    @if (error()) { <p class="error">{{ error() }}</p> }
-
-    <button class="primario" [disabled]="!metasCompletas() || generando()" (click)="generar()">
-      {{ generando() ? 'Generando tu plan…' : 'Generar mi rutina y dieta' }}
-    </button>
-  </section>
-}
+</div>
