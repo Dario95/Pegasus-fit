@@ -5,8 +5,15 @@
     <p class="text-apagado text-sm mt-1">Crea tu cuenta y guarda tu progreso para siempre.</p>
   </div>
 
-  <label class="block my-4 text-sm text-apagado">Nombre
-    <input class="campo !text-base" type="text" autocomplete="name"
+  @if (traePlan()) {
+    <div class="flex items-center gap-2.5 rounded-2xl border border-acento/40 bg-acento-suave px-4 py-3 mb-4">
+      <app-icono nombre="check-circulo" clase="w-5 h-5 text-acento shrink-0" />
+      <p class="text-sm leading-snug">Tu plan ya está listo — crea tu cuenta y queda guardado a tu nombre.</p>
+    </div>
+  }
+
+  <label class="block my-4 text-sm text-apagado">Nombre de usuario
+    <input class="campo !text-base" type="text" autocomplete="username"
       [ngModel]="nombre()" (ngModelChange)="nombre.set($event)" placeholder="¿Cómo te llamamos?" />
   </label>
   <label class="block my-4 text-sm text-apagado">Correo
@@ -26,6 +33,8 @@
     </span>
     Acepto los términos y el tratamiento de mis datos de salud
   </button>
+
+  @if (error()) { <p class="text-red-400 text-sm mt-3">{{ error() }}</p> }
 
   <button class="btn-primario" [disabled]="!valido() || cargando()" (click)="crear()">
     {{ cargando() ? 'Creando tu cuenta…' : 'Crear mi cuenta' }}

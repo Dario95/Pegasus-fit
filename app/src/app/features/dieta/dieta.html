@@ -1,0 +1,62 @@
+<div class="max-w-xl mx-auto">
+  @if (plan(); as p) {
+    <header class="mb-4">
+      <h2 class="text-2xl font-bold">Tu plan nutricional</h2>
+      <p class="text-apagado text-sm">El entrenamiento abre la puerta; la cocina decide qué tan rápido cruzas.</p>
+    </header>
+
+    <section class="tarjeta p-5 mb-5 bg-gradient-to-br from-panel to-panel2">
+      <div class="text-4xl font-extrabold">
+        {{ p.dieta.kcalObjetivo }} <span class="text-base font-normal text-apagado">kcal / día</span>
+      </div>
+      <div class="flex gap-3 my-3">
+        <div class="flex-1 rounded-xl bg-fondo/60 p-2.5 text-center">
+          <strong class="block text-lg">{{ p.dieta.proteinaG }}g</strong>
+          <span class="text-xs text-apagado">proteína</span>
+        </div>
+        <div class="flex-1 rounded-xl bg-fondo/60 p-2.5 text-center">
+          <strong class="block text-lg">{{ p.dieta.carbohidratosG }}g</strong>
+          <span class="text-xs text-apagado">carbos</span>
+        </div>
+        <div class="flex-1 rounded-xl bg-fondo/60 p-2.5 text-center">
+          <strong class="block text-lg">{{ p.dieta.grasaG }}g</strong>
+          <span class="text-xs text-apagado">grasa</span>
+        </div>
+      </div>
+      <p class="text-xs text-tenue">{{ p.dieta.nota }}</p>
+    </section>
+
+    <app-grafico-meta [pesoInicial]="p.anamnesis.pesoKg" [dieta]="p.dieta" />
+
+    <h3 class="text-sm text-apagado font-medium mb-2">Tu día, comida por comida</h3>
+    @for (c of comidas(); track c.nombre) {
+      <section class="tarjeta p-4 mb-3">
+        <div class="flex items-baseline justify-between">
+          <p class="font-bold">{{ c.nombre }} <span class="text-tenue text-xs font-normal">· {{ c.hora }}</span></p>
+          <p class="font-extrabold text-acento">{{ c.kcal }} <span class="text-xs font-normal text-apagado">kcal</span></p>
+        </div>
+        <div class="flex gap-4 mt-2 text-sm text-apagado">
+          <span><strong class="text-texto">{{ c.proteina }}g</strong> prot</span>
+          <span><strong class="text-texto">{{ c.carbos }}g</strong> carbos</span>
+          <span><strong class="text-texto">{{ c.grasa }}g</strong> grasa</span>
+        </div>
+        <p class="text-xs text-tenue mt-2">{{ c.ejemplos }}</p>
+      </section>
+    }
+
+    <p class="flex items-center justify-center gap-1.5 text-xs text-tenue my-5 text-center">
+      <app-icono nombre="ciencia" clase="w-3.5 h-3.5 shrink-0" />
+      Distribución orientativa — ajusta horarios y alimentos a tu vida, los totales son lo que manda
+    </p>
+  } @else {
+    <section class="text-center pt-14">
+      <app-icono nombre="pastel" clase="w-14 h-14 mx-auto mb-4 text-acento" />
+      <h2 class="text-2xl font-bold mb-2">Tu dieta nace de tu evaluación</h2>
+      <p class="text-apagado max-w-xs mx-auto mb-8 leading-relaxed">
+        Completa la evaluación y calculamos tus calorías, macros y comidas del día.
+      </p>
+      <a class="inline-block px-7 py-4 rounded-2xl bg-gradient-to-r from-acento to-amber-400 text-[#14100b] font-bold no-underline"
+        routerLink="/anamnesis">Hacer mi evaluación</a>
+    </section>
+  }
+</div>

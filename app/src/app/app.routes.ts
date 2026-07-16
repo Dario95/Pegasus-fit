@@ -13,6 +13,11 @@ export const routes: Routes = [
     title: 'Mi Rutina',
   },
   {
+    path: 'dieta',
+    loadComponent: () => import('./features/dieta/dieta').then((m) => m.DietaPagina),
+    title: 'Mi Dieta',
+  },
+  {
     path: 'acceso',
     loadComponent: () => import('./features/acceso/acceso').then((m) => m.Acceso),
     title: 'Acceso',

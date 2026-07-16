@@ -4,10 +4,11 @@ import { Icono } from '../../core/icono';
 import { EjercicioPlan } from '../../core/models';
 import { PlanService } from '../../core/plan.service';
 import { EjercicioCatalogo } from '../../core/wger.service';
+import { GraficoMeta } from './grafico-meta';
 
 @Component({
   selector: 'app-rutina',
-  imports: [RouterLink, Icono],
+  imports: [RouterLink, Icono, GraficoMeta],
   templateUrl: './rutina.html',
   styleUrl: './rutina.scss',
 })

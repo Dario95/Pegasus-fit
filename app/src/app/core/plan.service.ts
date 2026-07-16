@@ -1,4 +1,5 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, effect, inject, signal } from '@angular/core';
+import { AuthService } from './auth.service';
 import { Anamnesis, DiaPlan, Dieta, EjercicioPlan, Plan } from './models';
 import { CAT, EQUIPO_CASA, EjercicioCatalogo, WgerService } from './wger.service';
 
@@ -100,12 +101,39 @@ const DESCANSO_POR_CATEGORIA: Record<number, number> = {
 @Injectable({ providedIn: 'root' })
 export class PlanService {
   private wger = inject(WgerService);
+  private auth = inject(AuthService);
 
-  readonly plan = signal<Plan | null>(this.cargar());
+  readonly plan = signal<Plan | null>(null);
+
+  constructor() {
+    // El plan sigue a la sesión: invitado usa la clave base; al iniciar sesión
+    // se adopta el plan de invitado si el usuario aún no tiene uno propio.
+    effect(() => {
+      const usuario = this.auth.usuario();
+      if (usuario) this.adoptarPlanInvitado(usuario.id);
+      this.plan.set(this.cargar());
+    });
+  }
+
+  /** Clave de almacenamiento por usuario; invitado = clave base. */
+  private clave(): string {
+    const u = this.auth.usuario();
+    return u ? `${STORAGE_KEY}::${u.id}` : STORAGE_KEY;
+  }
+
+  /** El plan hecho como invitado se guarda para el usuario al registrarse/entrar. */
+  private adoptarPlanInvitado(userId: number): void {
+    const claveUsuario = `${STORAGE_KEY}::${userId}`;
+    const invitado = localStorage.getItem(STORAGE_KEY);
+    if (invitado && !localStorage.getItem(claveUsuario)) {
+      localStorage.setItem(claveUsuario, invitado);
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }
 
   private cargar(): Plan | null {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(this.clave());
       return raw ? (JSON.parse(raw) as Plan) : null;
     } catch {
       return null;
@@ -113,7 +141,7 @@ export class PlanService {
   }
 
   limpiar(): void {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(this.clave());
     this.plan.set(null);
   }
 
@@ -121,7 +149,7 @@ export class PlanService {
     const dias = await this.generarRutina(anamnesis);
     const dieta = this.calcularDieta(anamnesis);
     const plan: Plan = { anamnesis, dias, dieta, generado: new Date().toISOString() };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(plan));
+    localStorage.setItem(this.clave(), JSON.stringify(plan));
     this.plan.set(plan);
     return plan;
   }
@@ -233,7 +261,7 @@ export class PlanService {
           },
     );
     const actualizado: Plan = { ...p, dias };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(actualizado));
+    localStorage.setItem(this.clave(), JSON.stringify(actualizado));
     this.plan.set(actualizado);
   }
 

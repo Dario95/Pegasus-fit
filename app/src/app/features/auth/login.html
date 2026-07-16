@@ -5,16 +5,18 @@
     <p class="text-apagado text-sm mt-1">Tu plan te está esperando.</p>
   </div>
 
-  <label class="block my-4 text-sm text-apagado">Correo
-    <input class="campo !text-base" type="email" inputmode="email" autocomplete="email"
-      [ngModel]="correo()" (ngModelChange)="correo.set($event)" placeholder="tu@correo.com" />
+  <label class="block my-4 text-sm text-apagado">Usuario
+    <input class="campo !text-base" type="text" autocomplete="username"
+      [ngModel]="usuario()" (ngModelChange)="usuario.set($event)" placeholder="tu usuario" />
   </label>
   <label class="block my-4 text-sm text-apagado">Contraseña
     <input class="campo !text-base" type="password" autocomplete="current-password"
       [ngModel]="clave()" (ngModelChange)="clave.set($event)" placeholder="••••••••" />
   </label>
 
-  <button class="btn-primario" [disabled]="!correo() || !clave() || cargando()" (click)="entrar()">
+  @if (error()) { <p class="text-red-400 text-sm">{{ error() }}</p> }
+
+  <button class="btn-primario" [disabled]="!usuario() || !clave() || cargando()" (click)="entrar()">
     {{ cargando() ? 'Entrando…' : 'Entrar' }}
   </button>
 

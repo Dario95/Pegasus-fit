@@ -1,21 +1,34 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../core/auth.service';
 import { Icono } from '../../core/icono';
 
-/** MOCK de diseño: sin backend todavía — la auth real llegará con el BFF (spec §3.3). */
 @Component({
   selector: 'app-login',
   imports: [FormsModule, RouterLink, Icono],
   templateUrl: './login.html',
 })
 export class Login {
-  readonly correo = signal('');
+  private auth = inject(AuthService);
+  private router = inject(Router);
+
+  readonly usuario = signal('');
   readonly clave = signal('');
   readonly cargando = signal(false);
+  readonly error = signal<string | null>(null);
 
-  entrar(): void {
+  async entrar(): Promise<void> {
+    if (this.cargando()) return;
     this.cargando.set(true);
-    setTimeout(() => this.cargando.set(false), 1200); // simulación
+    this.error.set(null);
+    try {
+      await this.auth.login(this.usuario().trim(), this.clave());
+      await this.router.navigate(['/rutina']);
+    } catch {
+      this.error.set('Usuario o contraseña incorrectos.');
+    } finally {
+      this.cargando.set(false);
+    }
   }
 }

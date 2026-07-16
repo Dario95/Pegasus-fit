@@ -1,6 +1,16 @@
 @if (!enLanding()) {
-  <header class="px-4 pt-3 pb-1">
+  <header class="px-4 pt-3 pb-1 flex items-center justify-between">
     <a routerLink="/" class="wordmark text-xl font-black tracking-tight no-underline text-texto">PEGASUS<em>FIT</em></a>
+    @if (auth.usuario(); as u) {
+      <button class="flex items-center gap-1.5 text-xs text-apagado bg-transparent border border-borde rounded-full px-3 py-1.5"
+        (click)="auth.salir()" title="Cerrar sesión">
+        <app-icono nombre="usuario" clase="w-3.5 h-3.5" /> {{ u.username }} · salir
+      </button>
+    } @else {
+      <a routerLink="/login" class="text-xs text-apagado no-underline border border-borde rounded-full px-3 py-1.5">
+        Iniciar sesión
+      </a>
+    }
   </header>
 }
 
@@ -12,6 +22,9 @@
   <nav class="flex border-t border-borde bg-panel pb-[env(safe-area-inset-bottom)]">
     <a routerLink="/rutina" routerLinkActive="tab-activa" class="tab">
       <app-icono nombre="bolt" clase="w-6 h-6" /><span>Rutina</span>
+    </a>
+    <a routerLink="/dieta" routerLinkActive="tab-activa" class="tab">
+      <app-icono nombre="pastel" clase="w-6 h-6" /><span>Dieta</span>
     </a>
     <a routerLink="/acceso" routerLinkActive="tab-activa" class="tab">
       <app-icono nombre="qr-code" clase="w-6 h-6" /><span>Acceso</span>

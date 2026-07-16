@@ -41,19 +41,12 @@
         </div>
       </div>
       <p class="text-xs text-tenue">Gasto basal {{ p.dieta.bmr }} kcal · mantenimiento {{ p.dieta.tdee }} kcal</p>
-      @if (p.dieta.pesoObjetivoKg && p.dieta.semanasEstimadas) {
-        <div class="mt-3 rounded-xl border border-acento/30 bg-acento-suave px-3 py-2.5 flex items-center gap-2.5">
-          <app-icono nombre="tendencia" clase="w-4 h-4 text-acento shrink-0" />
-          <p class="text-xs leading-relaxed">
-            <strong>Rumbo a {{ p.dieta.pesoObjetivoKg }} kg:</strong>
-            {{ p.dieta.cambioSemanalKg! > 0 ? '+' : '' }}{{ p.dieta.cambioSemanalKg }} kg/semana
-            → ~{{ p.dieta.semanasEstimadas }} semanas
-            <span class="text-apagado">(estimación, no promesa — tu cuerpo pone el ritmo final)</span>
-          </p>
-        </div>
-      }
-      <p class="text-xs text-tenue italic mt-2 leading-relaxed">{{ p.dieta.nota }}</p>
+      <a routerLink="/dieta" class="mt-3 flex items-center justify-between text-sm text-acento no-underline font-semibold">
+        Ver mi plan nutricional completo →
+      </a>
     </section>
+
+    <app-grafico-meta [pesoInicial]="p.anamnesis.pesoKg" [dieta]="p.dieta" />
 
     @for (dia of p.dias; track dia.nombre; let i = $index) {
       <section class="tarjeta mb-3 overflow-hidden" [class.border-acento]="diaAbierto() === i">
