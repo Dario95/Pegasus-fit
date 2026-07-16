@@ -196,10 +196,13 @@ def download_media(rel_path):
     # wger no acepta imágenes animadas → GIF se convierte a MP4 y se sube
     # como video del ejercicio (la ficha lo reproduce en loop mudo).
     mp4 = tmp.name.replace(".gif", ".mp4")
+    # Reescalado 2x con Lanczos ANTES de comprimir + CRF 16: evita el lavado de
+    # bordes del 4:2:0 y la sobrecompresión del CRF por defecto (~29 kbps)
     rc = subprocess.run(
         ["ffmpeg", "-y", "-loglevel", "error", "-i", tmp.name,
          "-movflags", "faststart", "-pix_fmt", "yuv420p",
-         "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2", mp4],
+         "-vf", "scale=360:360:flags=lanczos",
+         "-c:v", "libx264", "-crf", "16", "-preset", "slow", mp4],
         capture_output=True,
     ).returncode
     Path(tmp.name).unlink(missing_ok=True)
