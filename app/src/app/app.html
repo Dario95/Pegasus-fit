@@ -1,6 +1,9 @@
 @if (!enLanding()) {
   <header class="px-4 pt-3 pb-1 flex items-center justify-between">
-    <a routerLink="/" class="wordmark text-xl font-black tracking-tight no-underline text-texto">PEGASUS<em>FIT</em></a>
+    <a routerLink="/" class="flex items-center gap-2 no-underline text-texto">
+      <img src="avatar.png" alt="" class="w-8 h-8 rounded-full" />
+      <span class="wordmark text-xl font-black tracking-tight">PEGASUS<em>FIT</em></span>
+    </a>
     @if (auth.usuario(); as u) {
       <button class="flex items-center gap-1.5 text-xs text-apagado bg-transparent border border-borde rounded-full px-3 py-1.5"
         (click)="auth.salir()" title="Cerrar sesión">

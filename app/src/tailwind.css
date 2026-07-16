@@ -1,33 +1,40 @@
 @import 'tailwindcss';
 
+/* Paleta oficial Pegasus Fit — Manual de Identidad Visual v2.0:
+   Deep Abyss (fondos) · Armour Silver (tipografía) · Burning Gold (botones
+   primarios / acentos heroicos) · Cosmic Blue (neones / acentos UX) */
 @theme {
-  --color-fondo: #0b0c10;
-  --color-panel: #15161c;
-  --color-panel2: #1c1d25;
-  --color-borde: #262832;
-  --color-texto: #f4f4f5;
-  --color-apagado: #9ca3af;
-  --color-tenue: #6b7280;
-  --color-acento: #f97316;
-  --color-acento-suave: #2b1a0d;
+  --color-fondo: #0a192f; /* Deep Abyss */
+  --color-panel: #112240;
+  --color-panel2: #172d52;
+  --color-borde: #223c66;
+  --color-texto: #e2e8f0; /* Armour Silver */
+  --color-apagado: #94a7c4;
+  --color-tenue: #64748b;
+  --color-acento: #ff9f1c; /* Burning Gold */
+  --color-acento-suave: #2e2410;
+  --color-cosmo: #00e5ff; /* Cosmic Blue */
+  --color-cosmo-suave: #0a2c3d;
 }
 
 @layer components {
-  /* Botón píldora táctil (spec UX: targets ≥56dp, feedback físico) */
+  /* Botón píldora táctil (spec UX: targets ≥56dp, feedback físico).
+     Selección = acento UX (Cosmic Blue), según manual §4. */
   .pildora {
     @apply flex-1 min-h-14 px-4 rounded-2xl border border-borde bg-panel text-texto
       text-left text-base transition-transform duration-75 active:scale-[0.97];
   }
   .pildora-activa {
-    @apply border-acento bg-acento-suave font-semibold;
+    @apply border-cosmo bg-cosmo-suave font-semibold;
   }
 
+  /* Botón primario = Burning Gold (manual §4: "botones primarios y acentos heroicos") */
   .btn-primario {
     @apply block w-full min-h-14 mt-6 rounded-2xl border-none text-[#14100b]
       text-lg font-bold transition-transform duration-75 active:scale-[0.98]
       disabled:opacity-35 disabled:active:scale-100
-      bg-gradient-to-r from-acento to-amber-400
-      shadow-[0_8px_28px_rgba(249,115,22,0.28)];
+      bg-gradient-to-r from-acento to-[#ffc15e]
+      shadow-[0_8px_28px_rgba(255,159,28,0.30)];
   }
 
   /* Chip de señal de confianza (marketing: prueba social / autoridad) */
@@ -47,7 +54,7 @@
   .campo {
     @apply block w-full mt-1.5 min-h-14 px-4 text-xl rounded-2xl border border-borde
       bg-panel text-texto placeholder:text-tenue
-      focus:outline-2 focus:outline-acento focus:border-transparent;
+      focus:outline-2 focus:outline-cosmo focus:border-transparent;
   }
 }
 

@@ -6,16 +6,6 @@
   color: var(--color-texto);
 }
 
-.wordmark {
-  em {
-    font-style: normal;
-    background: linear-gradient(90deg, var(--color-acento), #fbbf24);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-}
-
 .tab {
   flex: 1;
   display: flex;
@@ -31,7 +21,7 @@
   span { font-size: 0.72rem; }
 
   &.tab-activa {
-    color: var(--color-acento);
+    color: var(--color-cosmo);
     span { font-weight: 600; }
   }
 }

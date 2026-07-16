@@ -1,15 +1,17 @@
 /* Estilos globales (Tailwind vive en src/tailwind.css) */
 
+/* Wordmark: plata con neón cósmico (manual: Cosmic Blue = brillos/neones) */
 .wordmark em {
   font-style: normal;
-  background: linear-gradient(90deg, var(--color-acento), #fbbf24);
+  background: linear-gradient(90deg, #00e5ff, #e2e8f0);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
+/* Degradado heroico: Burning Gold → Cosmic Blue */
 .degradado {
-  background: linear-gradient(90deg, var(--color-acento), #fbbf24);
+  background: linear-gradient(90deg, #ff9f1c, #00e5ff);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
