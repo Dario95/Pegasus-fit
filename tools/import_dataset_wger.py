@@ -23,6 +23,7 @@ import argparse
 import json
 import logging
 import os
+import subprocess
 import sys
 import tempfile
 import time
@@ -175,7 +176,11 @@ def fetch_exercises_json():
 
 
 def download_media(rel_path):
-    """Descarga images/XXXX.jpg o videos/XXXX.gif del repo del dataset."""
+    """Descarga images/XXXX.jpg o videos/XXXX.gif del repo del dataset.
+
+    wger no acepta GIF como imagen: los GIFs se convierten a WebP animado
+    con ffmpeg (mismo loop, menor peso). Si ffmpeg no está, se omite el GIF.
+    """
     if not rel_path:
         return None, None
     r = requests.get(f"{REPO_RAW}/{rel_path}", timeout=60)
@@ -183,11 +188,25 @@ def download_media(rel_path):
         return None, None
     r.raise_for_status()
     ext = Path(rel_path).suffix or ".jpg"
-    mime = "image/gif" if ext == ".gif" else "image/jpeg"
     tmp = tempfile.NamedTemporaryFile(suffix=ext, delete=False)
     tmp.write(r.content)
     tmp.close()
-    return tmp.name, mime
+    if ext != ".gif":
+        return tmp.name, "image/jpeg"
+    # wger no acepta imágenes animadas → GIF se convierte a MP4 y se sube
+    # como video del ejercicio (la ficha lo reproduce en loop mudo).
+    mp4 = tmp.name.replace(".gif", ".mp4")
+    rc = subprocess.run(
+        ["ffmpeg", "-y", "-loglevel", "error", "-i", tmp.name,
+         "-movflags", "faststart", "-pix_fmt", "yuv420p",
+         "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2", mp4],
+        capture_output=True,
+    ).returncode
+    Path(tmp.name).unlink(missing_ok=True)
+    if rc != 0 or not Path(mp4).exists():
+        log.warning(f"  ffmpeg no pudo convertir {rel_path} — GIF omitido")
+        return None, None
+    return mp4, "video/mp4"
 
 
 # ── Mapeo ─────────────────────────────────────────────────────────────────────
@@ -274,18 +293,34 @@ def import_exercise(ex, lang_en, lang_es, dry_run=False):
     if not created_translation:
         raise RuntimeError("ninguna traducción creada — wger eliminará el base huérfano")
 
-    # 3. Media: JPG principal + GIF secundario
-    media = {"jpg": None, "gif": None}
-    for key, rel, main in (("jpg", ex.get("image"), True), ("gif", ex.get("gif_url"), False)):
-        path, mime = download_media(rel)
-        if not path:
-            continue
+    # 3. Media: JPG como imagen principal + GIF convertido a MP4 como video
+    media = {"jpg": None, "video": None}
+
+    path, mime = download_media(ex.get("image"))
+    if path:
         try:
-            r_img = upload_image(ex_id, path, mime, main)
+            r_img = upload_image(ex_id, path, mime, True)
             if r_img.ok:
-                media[key] = r_img.json().get("image")
+                media["jpg"] = r_img.json().get("image")
             else:
-                log.warning(f"  {key} falló para '{name}': {r_img.status_code} {r_img.text[:100]}")
+                log.warning(f"  jpg falló para '{name}': {r_img.status_code} {r_img.text[:100]}")
+        finally:
+            Path(path).unlink(missing_ok=True)
+
+    path, mime = download_media(ex.get("gif_url"))
+    if path:
+        try:
+            with open(path, "rb") as f:
+                r_vid = wger_post(
+                    "video/",
+                    data={"exercise": ex_id, "license": "1",
+                          "license_author": LICENSE_AUTHOR},
+                    files={"video": (Path(path).name, f, mime)},
+                )
+            if r_vid.ok:
+                media["video"] = r_vid.json().get("video")
+            else:
+                log.warning(f"  video falló para '{name}': {r_vid.status_code} {r_vid.text[:100]}")
         finally:
             Path(path).unlink(missing_ok=True)
 
@@ -340,7 +375,8 @@ def main():
     if not WGER_TOKEN and not args.dry_run:
         log.error("Falta WGER_TOKEN (export WGER_TOKEN=…). Genera uno en la UI de wger → API.")
         sys.exit(1)
-    SESSION.headers.update({"Authorization": f"Token {WGER_TOKEN}"})
+    if WGER_TOKEN:
+        SESSION.headers.update({"Authorization": f"Token {WGER_TOKEN}"})
 
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     log.addHandler(logging.FileHandler(str(CACHE_DIR / "import.log")))
@@ -383,7 +419,7 @@ def main():
             state["imported"][ex["id"]] = result
             ok += 1
             log.info(f"  ✓ wger={result['exercise_id']} jpg={'✓' if result['jpg'] else '✗'} "
-                     f"gif={'✓' if result['gif'] else '✗'}")
+                     f"video={'✓' if result['video'] else '✗'}")
         except Exception as e:
             err += 1
             state["failed"].append({"id": ex["id"], "name": ex["name"], "error": str(e)})
