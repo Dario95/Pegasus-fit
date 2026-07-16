@@ -41,6 +41,17 @@
         </div>
       </div>
       <p class="text-xs text-tenue">Gasto basal {{ p.dieta.bmr }} kcal · mantenimiento {{ p.dieta.tdee }} kcal</p>
+      @if (p.dieta.pesoObjetivoKg && p.dieta.semanasEstimadas) {
+        <div class="mt-3 rounded-xl border border-acento/30 bg-acento-suave px-3 py-2.5 flex items-center gap-2.5">
+          <app-icono nombre="tendencia" clase="w-4 h-4 text-acento shrink-0" />
+          <p class="text-xs leading-relaxed">
+            <strong>Rumbo a {{ p.dieta.pesoObjetivoKg }} kg:</strong>
+            {{ p.dieta.cambioSemanalKg! > 0 ? '+' : '' }}{{ p.dieta.cambioSemanalKg }} kg/semana
+            → ~{{ p.dieta.semanasEstimadas }} semanas
+            <span class="text-apagado">(estimación, no promesa — tu cuerpo pone el ritmo final)</span>
+          </p>
+        </div>
+      }
       <p class="text-xs text-tenue italic mt-2 leading-relaxed">{{ p.dieta.nota }}</p>
     </section>
 

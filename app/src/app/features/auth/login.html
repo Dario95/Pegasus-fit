@@ -1,0 +1,32 @@
+<div class="max-w-sm mx-auto pt-6">
+  <div class="text-center mb-8">
+    <span class="wordmark text-2xl font-black tracking-tight">PEGASUS<em class="not-italic degradado">FIT</em></span>
+    <h2 class="text-2xl font-bold mt-4">Qué bueno verte de vuelta</h2>
+    <p class="text-apagado text-sm mt-1">Tu plan te está esperando.</p>
+  </div>
+
+  <label class="block my-4 text-sm text-apagado">Correo
+    <input class="campo !text-base" type="email" inputmode="email" autocomplete="email"
+      [ngModel]="correo()" (ngModelChange)="correo.set($event)" placeholder="tu@correo.com" />
+  </label>
+  <label class="block my-4 text-sm text-apagado">Contraseña
+    <input class="campo !text-base" type="password" autocomplete="current-password"
+      [ngModel]="clave()" (ngModelChange)="clave.set($event)" placeholder="••••••••" />
+  </label>
+
+  <button class="btn-primario" [disabled]="!correo() || !clave() || cargando()" (click)="entrar()">
+    {{ cargando() ? 'Entrando…' : 'Entrar' }}
+  </button>
+
+  <button class="btn-secundario flex items-center justify-center gap-2">
+    <app-icono nombre="qr-code" clase="w-4 h-4" /> Entrar con el QR de mi sede
+  </button>
+
+  <p class="text-center text-sm text-apagado mt-6">
+    ¿Primera vez aquí?
+    <a routerLink="/registro" class="text-acento font-semibold no-underline">Crea tu cuenta</a>
+  </p>
+  <p class="text-center text-xs text-tenue mt-2">
+    <a class="no-underline text-tenue">Olvidé mi contraseña</a>
+  </p>
+</div>

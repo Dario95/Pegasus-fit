@@ -3,6 +3,7 @@ export type Experiencia = 'principiante' | 'intermedio' | 'avanzado';
 export type Sexo = 'masculino' | 'femenino';
 export type DuracionSesion = '30_45' | '45_60' | '60_90';
 export type Entorno = 'gimnasio' | 'casa';
+export type Ritmo = 'relajado' | 'constante' | 'decidido';
 
 export interface Anamnesis {
   // Filtro de seguridad (regla de oro: cualquier "sí" bloquea la generación)
@@ -15,6 +16,8 @@ export interface Anamnesis {
   // Metas y preferencias (el "porqué" y el "cómo" del usuario)
   objetivo: Objetivo;
   motivaciones: string[]; // qué lo mueve: energía, confianza, salud…
+  pesoObjetivoKg: number | null; // null para acondicionamiento
+  ritmo: Ritmo | null; // qué tan rápido quiere llegar (define déficit/superávit)
   diasSemana: 2 | 3 | 4 | 5;
   duracionSesion: DuracionSesion; // cuánto tiempo le gusta entrenar
   entorno: Entorno; // gimnasio completo o en casa con equipo mínimo
@@ -44,6 +47,10 @@ export interface Dieta {
   proteinaG: number;
   grasaG: number;
   carbohidratosG: number;
+  // Proyección hacia la meta (null si no hay peso objetivo)
+  pesoObjetivoKg: number | null;
+  cambioSemanalKg: number | null; // negativo = perder
+  semanasEstimadas: number | null;
   nota: string;
 }
 

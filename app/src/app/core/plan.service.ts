@@ -193,11 +193,40 @@ export class PlanService {
     const factor = { 2: 1.375, 3: 1.465, 4: 1.55, 5: 1.725 }[a.diasSemana];
     const tdee = Math.round(bmr * factor);
 
-    // Superávit ~10 % [10] · déficit ~20 % (pérdida lenta) [9]
-    const ajuste = { hipertrofia: 1.1, perdida_grasa: 0.8, acondicionamiento: 1.0 }[a.objetivo];
-    let kcal = Math.round(tdee * ajuste);
+    // Ritmo elegido → % de cambio de peso corporal por semana.
+    // Pérdida: 0.25-0.75 %/sem (lento conserva masa magra [9]; >1 %/sem no se ofrece).
+    // Ganancia: la tasa realista de músculo la limita la experiencia, no las ganas —
+    // superávit 5-15 % [10] y expectativa honesta por nivel.
+    const ritmo = a.ritmo ?? 'constante';
+    let kcal: number;
+    let cambioSemanalKg: number | null = null;
+
+    if (a.objetivo === 'perdida_grasa') {
+      const pctSemana = { relajado: 0.0025, constante: 0.005, decidido: 0.0075 }[ritmo];
+      cambioSemanalKg = -+(a.pesoKg * pctSemana).toFixed(2);
+      // 1 kg de tejido adiposo ≈ 7,700 kcal
+      const deficitDiario = Math.round((Math.abs(cambioSemanalKg) * 7700) / 7);
+      kcal = tdee - Math.min(deficitDiario, Math.round(tdee * 0.25)); // tope de seguridad 25 % TDEE
+    } else if (a.objetivo === 'hipertrofia') {
+      const superavit = { relajado: 0.05, constante: 0.1, decidido: 0.15 }[ritmo];
+      kcal = Math.round(tdee * (1 + superavit));
+      // Ganancia muscular realista por nivel (aprox. Helms/Iraki): kg por semana
+      cambioSemanalKg = { principiante: 0.17, intermedio: 0.09, avanzado: 0.05 }[a.experiencia];
+    } else {
+      kcal = tdee;
+    }
+
     const piso = a.sexo === 'masculino' ? 1500 : 1200;
-    kcal = Math.max(kcal, piso);
+    kcal = Math.max(Math.round(kcal), piso);
+
+    // Semanas hasta el peso objetivo (estimación honesta, no promesa)
+    let semanasEstimadas: number | null = null;
+    if (a.pesoObjetivoKg && cambioSemanalKg) {
+      const delta = a.pesoObjetivoKg - a.pesoKg;
+      if (Math.sign(delta) === Math.sign(cambioSemanalKg) && cambioSemanalKg !== 0) {
+        semanasEstimadas = Math.max(1, Math.round(Math.abs(delta / cambioSemanalKg)));
+      }
+    }
 
     // Proteína: 1.6-2.2 g/kg [7]; en déficit 2.3 g/kg [8]
     const proteinaPorKg = { hipertrofia: 1.8, perdida_grasa: 2.3, acondicionamiento: 1.6 }[a.objetivo];
@@ -217,6 +246,9 @@ export class PlanService {
       proteinaG,
       grasaG,
       carbohidratosG,
+      pesoObjetivoKg: a.pesoObjetivoKg,
+      cambioSemanalKg,
+      semanasEstimadas,
       nota:
         `Reparte la proteína en ~${comidas} comidas (${Math.round(proteinaG / comidas)} g c/u). ` +
         'Orientación general basada en evidencia (ver Referencias) — no sustituye a un profesional de la nutrición.',

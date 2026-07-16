@@ -8,6 +8,7 @@ import {
   Entorno,
   Experiencia,
   Objetivo,
+  Ritmo,
   Sexo,
 } from '../../core/models';
 import { PlanService } from '../../core/plan.service';
@@ -49,7 +50,7 @@ export class Anamnesis {
   readonly listaMotivaciones = MOTIVACIONES;
   readonly totalPasos = TOTAL_PASOS;
 
-  // 0 salud · 1 tu porqué · 2 sobre ti · 3 tu ritmo · 4 experiencia
+  // 0 salud · 1 sobre ti · 2 tu porqué (meta) · 3 tu ritmo · 4 experiencia
   readonly paso = signal(0);
   readonly generando = signal(false);
   readonly error = signal<string | null>(null);
@@ -59,10 +60,6 @@ export class Anamnesis {
   );
   readonly bloqueado = computed(() => Object.values(this.salud()).some((v) => v === true));
   readonly saludCompleta = computed(() => Object.values(this.salud()).every((v) => v !== null));
-
-  readonly objetivo = signal<Objetivo | null>(null);
-  readonly motivaciones = signal<string[]>([]);
-  readonly porqueCompleto = computed(() => this.objetivo() !== null);
 
   readonly sexo = signal<Sexo | null>(null);
   readonly edad = signal<number | null>(null);
@@ -75,6 +72,22 @@ export class Anamnesis {
       (this.pesoKg() ?? 0) >= 35 && (this.pesoKg() ?? 0) <= 250 &&
       (this.tallaCm() ?? 0) >= 130 && (this.tallaCm() ?? 0) <= 220,
   );
+
+  readonly objetivo = signal<Objetivo | null>(null);
+  readonly motivaciones = signal<string[]>([]);
+  readonly pesoObjetivoKg = signal<number | null>(null);
+  readonly ritmo = signal<Ritmo | null>(null);
+
+  /** La meta numérica solo aplica a hipertrofia/pérdida y debe apuntar en la dirección correcta. */
+  readonly conMetaPeso = computed(() => this.objetivo() !== null && this.objetivo() !== 'acondicionamiento');
+  readonly metaPesoValida = computed(() => {
+    if (!this.conMetaPeso()) return true;
+    const actual = this.pesoKg() ?? 0;
+    const meta = this.pesoObjetivoKg();
+    if (meta === null || meta < 35 || meta > 250 || this.ritmo() === null) return false;
+    return this.objetivo() === 'perdida_grasa' ? meta < actual : meta > actual;
+  });
+  readonly porqueCompleto = computed(() => this.objetivo() !== null && this.metaPesoValida());
 
   readonly diasSemana = signal<2 | 3 | 4 | 5 | null>(null);
   readonly duracionSesion = signal<DuracionSesion | null>(null);
@@ -120,6 +133,8 @@ export class Anamnesis {
       tallaCm: this.tallaCm()!,
       objetivo: this.objetivo()!,
       motivaciones: this.motivaciones(),
+      pesoObjetivoKg: this.conMetaPeso() ? this.pesoObjetivoKg() : null,
+      ritmo: this.conMetaPeso() ? this.ritmo() : null,
       diasSemana: this.diasSemana()!,
       duracionSesion: this.duracionSesion()!,
       entorno: this.entorno()!,

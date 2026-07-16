@@ -1,0 +1,43 @@
+<div class="max-w-sm mx-auto pt-6">
+  <div class="text-center mb-8">
+    <span class="wordmark text-2xl font-black tracking-tight">PEGASUS<em class="not-italic degradado">FIT</em></span>
+    <h2 class="text-2xl font-bold mt-4">Hoy empieza tu cambio</h2>
+    <p class="text-apagado text-sm mt-1">Crea tu cuenta y guarda tu progreso para siempre.</p>
+  </div>
+
+  <label class="block my-4 text-sm text-apagado">Nombre
+    <input class="campo !text-base" type="text" autocomplete="name"
+      [ngModel]="nombre()" (ngModelChange)="nombre.set($event)" placeholder="¿Cómo te llamamos?" />
+  </label>
+  <label class="block my-4 text-sm text-apagado">Correo
+    <input class="campo !text-base" type="email" inputmode="email" autocomplete="email"
+      [ngModel]="correo()" (ngModelChange)="correo.set($event)" placeholder="tu@correo.com" />
+  </label>
+  <label class="block my-4 text-sm text-apagado">Contraseña
+    <input class="campo !text-base" type="password" autocomplete="new-password"
+      [ngModel]="clave()" (ngModelChange)="clave.set($event)" placeholder="mínimo 8 caracteres" />
+  </label>
+
+  <button class="pildora !min-h-12 !text-sm w-full flex items-center gap-3"
+    [class.pildora-activa]="acepta()" (click)="acepta.set(!acepta())">
+    <span class="w-5 h-5 rounded-md border grid place-items-center shrink-0"
+      [class]="acepta() ? 'border-acento bg-acento text-[#14100b]' : 'border-borde'">
+      @if (acepta()) { ✓ }
+    </span>
+    Acepto los términos y el tratamiento de mis datos de salud
+  </button>
+
+  <button class="btn-primario" [disabled]="!valido() || cargando()" (click)="crear()">
+    {{ cargando() ? 'Creando tu cuenta…' : 'Crear mi cuenta' }}
+  </button>
+
+  <div class="flex flex-wrap justify-center gap-2 mt-5">
+    <span class="insignia"><app-icono nombre="ciencia" clase="w-3.5 h-3.5" /> Datos de salud cifrados</span>
+    <span class="insignia"><app-icono nombre="check-circulo" clase="w-3.5 h-3.5" /> Sin permanencia</span>
+  </div>
+
+  <p class="text-center text-sm text-apagado mt-6">
+    ¿Ya tienes cuenta?
+    <a routerLink="/login" class="text-acento font-semibold no-underline">Inicia sesión</a>
+  </p>
+</div>

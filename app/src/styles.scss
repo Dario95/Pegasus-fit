@@ -1,1 +1,16 @@
-/* You can add global styles to this file, and also import other style files */
+/* Estilos globales (Tailwind vive en src/tailwind.css) */
+
+.wordmark em {
+  font-style: normal;
+  background: linear-gradient(90deg, var(--color-acento), #fbbf24);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.degradado {
+  background: linear-gradient(90deg, var(--color-acento), #fbbf24);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}

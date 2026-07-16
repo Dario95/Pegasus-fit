@@ -47,8 +47,8 @@
     }
   }
 
-  <!-- Paso 2 · Tu porqué -->
-  @if (paso() === 1) {
+  <!-- Paso 3 · Tu porqué -->
+  @if (paso() === 2) {
     <section>
       <h2 class="text-2xl font-bold">¿Qué cambio quieres ver?</h2>
       <p class="text-apagado mt-1 mb-4 text-sm">
@@ -77,12 +77,41 @@
         }
       </div>
 
-      <button class="btn-primario" [disabled]="!porqueCompleto()" (click)="paso.set(2)">Este es mi porqué</button>
+      @if (conMetaPeso()) {
+        <div class="mt-6 rounded-2xl border border-borde bg-panel p-4">
+          <p class="text-sm font-semibold">Pongámosle un número a tu meta</p>
+          <label class="block my-3 text-sm text-apagado">
+            Peso al que quieres llegar <span class="text-tenue">(hoy: {{ pesoKg() }} kg)</span>
+            <input class="campo" type="number" inputmode="decimal" min="35" max="250"
+              [ngModel]="pesoObjetivoKg()" (ngModelChange)="pesoObjetivoKg.set($event)" placeholder="kg" />
+          </label>
+          <p class="text-apagado mb-2 text-sm">¿A qué ritmo quieres llegar?</p>
+          <div class="flex flex-col gap-2.5">
+            <button class="pildora !min-h-12 !text-sm" [class.pildora-activa]="ritmo() === 'relajado'" (click)="ritmo.set('relajado')">
+              Relajado <span class="text-apagado">· cambios suaves, casi ni se sienten</span>
+            </button>
+            <button class="pildora !min-h-12 !text-sm" [class.pildora-activa]="ritmo() === 'constante'" (click)="ritmo.set('constante')">
+              Constante <span class="text-apagado">· el punto medio recomendado</span>
+            </button>
+            <button class="pildora !min-h-12 !text-sm" [class.pildora-activa]="ritmo() === 'decidido'" (click)="ritmo.set('decidido')">
+              Decidido <span class="text-apagado">· exigente pero sostenible</span>
+            </button>
+          </div>
+          @if (objetivo() === 'hipertrofia') {
+            <p class="text-xs text-tenue mt-3 leading-relaxed">
+              El músculo tiene su propio calendario: el ritmo define tu superávit de calorías,
+              pero la velocidad real la pone tu experiencia. Te daremos una estimación honesta.
+            </p>
+          }
+        </div>
+      }
+
+      <button class="btn-primario" [disabled]="!porqueCompleto()" (click)="paso.set(3)">Este es mi porqué</button>
     </section>
   }
 
-  <!-- Paso 3 · Sobre ti -->
-  @if (paso() === 2) {
+  <!-- Paso 2 · Sobre ti -->
+  @if (paso() === 1) {
     <section>
       <h2 class="text-2xl font-bold mb-1">Sobre ti</h2>
       <p class="text-apagado text-sm mb-4">Con esto calculamos tus calorías y macros exactos.</p>
@@ -102,7 +131,7 @@
         <input class="campo" type="number" inputmode="numeric" min="130" max="220"
           [ngModel]="tallaCm()" (ngModelChange)="tallaCm.set($event)" placeholder="cm" />
       </label>
-      <button class="btn-primario" [disabled]="!datosCompletos()" (click)="paso.set(3)">Continuar</button>
+      <button class="btn-primario" [disabled]="!datosCompletos()" (click)="paso.set(2)">Continuar</button>
     </section>
   }
 

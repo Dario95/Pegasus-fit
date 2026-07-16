@@ -22,4 +22,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/anamnesis/anamnesis').then((m) => m.Anamnesis),
     title: 'Evaluación inicial',
   },
+  {
+    path: 'login',
+    loadComponent: () => import('./features/auth/login').then((m) => m.Login),
+    title: 'Iniciar sesión',
+  },
+  {
+    path: 'registro',
+    loadComponent: () => import('./features/auth/registro').then((m) => m.Registro),
+    title: 'Crear cuenta',
+  },
 ];
