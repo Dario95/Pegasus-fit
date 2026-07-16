@@ -30,6 +30,7 @@ export interface EjercicioPlan {
   nombre: string;
   imagen: string | null;
   video: string | null;
+  categoria: number; // categoría wger — permite sugerir alternativas equivalentes
   series: number;
   reps: string;
   descansoSeg: number;

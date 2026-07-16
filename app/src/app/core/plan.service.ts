@@ -167,6 +167,7 @@ export class PlanService {
             nombre: ej.nombre,
             imagen: ej.imagen,
             video: ej.video,
+            categoria,
             series,
             reps: `${reps} · RIR ${RIR[a.experiencia]}`,
             descansoSeg: DESCANSO_POR_CATEGORIA[categoria] ?? 90,
@@ -184,6 +185,56 @@ export class PlanService {
     const elegidos = barajados.slice(0, n);
     elegidos.forEach((e) => usados.add(e.id));
     return elegidos;
+  }
+
+  /**
+   * Alternativas equivalentes para un ejercicio (máquina ocupada / no te gusta):
+   * misma categoría muscular, sin repetir nada del plan, priorizando variedad
+   * de equipo — si la máquina está ocupada, lo útil es una opción con OTRO equipo.
+   */
+  async alternativas(ej: EjercicioPlan, n = 6): Promise<EjercicioCatalogo[]> {
+    const p = this.plan();
+    const enPlan = new Set(p?.dias.flatMap((d) => d.ejercicios.map((e) => e.wgerId)) ?? []);
+    let catalogo = (await this.wger.porCategoria(ej.categoria)).filter(
+      (e) => e.id !== ej.wgerId && !enPlan.has(e.id),
+    );
+    if (p?.anamnesis.entorno === 'casa') {
+      const enCasa = catalogo.filter((e) => e.equipo.length > 0 && e.equipo.every((id) => EQUIPO_CASA.has(id)));
+      if (enCasa.length >= n) catalogo = enCasa;
+    }
+    const original = await this.buscarEnCatalogo(ej);
+    const equipoOriginal = new Set(original?.equipo ?? []);
+    const distinto = (e: EjercicioCatalogo) =>
+      e.equipo.length !== equipoOriginal.size || e.equipo.some((id) => !equipoOriginal.has(id));
+    const barajado = [...catalogo].sort(() => Math.random() - 0.5);
+    return [...barajado.filter(distinto), ...barajado.filter((e) => !distinto(e))].slice(0, n);
+  }
+
+  private async buscarEnCatalogo(ej: EjercicioPlan): Promise<EjercicioCatalogo | undefined> {
+    return (await this.wger.porCategoria(ej.categoria)).find((e) => e.id === ej.wgerId);
+  }
+
+  /** Reemplaza un ejercicio del plan conservando series/reps/descanso, y persiste. */
+  reemplazar(diaIdx: number, ejIdx: number, nuevo: EjercicioCatalogo): void {
+    const p = this.plan();
+    if (!p) return;
+    const actual = p.dias[diaIdx]?.ejercicios[ejIdx];
+    if (!actual) return;
+    const dias = p.dias.map((d, di) =>
+      di !== diaIdx
+        ? d
+        : {
+            ...d,
+            ejercicios: d.ejercicios.map((e, ei) =>
+              ei !== ejIdx
+                ? e
+                : { ...e, wgerId: nuevo.id, nombre: nuevo.nombre, imagen: nuevo.imagen, video: nuevo.video },
+            ),
+          },
+    );
+    const actualizado: Plan = { ...p, dias };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(actualizado));
+    this.plan.set(actualizado);
   }
 
   private calcularDieta(a: Anamnesis): Dieta {

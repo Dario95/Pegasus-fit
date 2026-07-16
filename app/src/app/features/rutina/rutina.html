@@ -64,7 +64,7 @@
         </button>
         @if (diaAbierto() === i) {
           <ul class="px-4 pb-3 list-none">
-            @for (ej of dia.ejercicios; track ej.wgerId) {
+            @for (ej of dia.ejercicios; track ej.wgerId; let ejIdx = $index) {
               <li class="flex gap-3.5 items-center py-2.5 border-t border-panel2">
                 @if (ej.video) {
                   <video class="w-20 h-20 rounded-xl object-cover bg-fondo shrink-0"
@@ -73,11 +73,19 @@
                   <img class="w-20 h-20 rounded-xl object-cover bg-fondo shrink-0"
                     [src]="ej.imagen" [alt]="ej.nombre" loading="lazy" />
                 }
-                <div>
+                <div class="flex-1 min-w-0">
                   <p class="font-semibold leading-tight">{{ ej.nombre }}</p>
                   <p class="text-apagado text-sm mt-1">{{ ej.series }} × {{ ej.reps }}</p>
                   <p class="text-tenue text-xs mt-0.5">descanso {{ ej.descansoSeg }}s</p>
                 </div>
+                @if (ej.categoria) {
+                  <button
+                    class="shrink-0 w-11 h-11 rounded-xl border border-borde bg-panel2 grid place-items-center text-apagado active:scale-95 transition-transform"
+                    title="¿Máquina ocupada? Cambiar ejercicio"
+                    (click)="abrirCambio(i, ejIdx, ej)">
+                    <app-icono nombre="intercambio" clase="w-5 h-5" />
+                  </button>
+                }
               </li>
             }
           </ul>
@@ -89,6 +97,49 @@
       <app-icono nombre="ciencia" clase="w-3.5 h-3.5" />
       Plan generado con criterios de evidencia científica
     </p>
+
+    <!-- Bottom sheet: cambiar ejercicio (máquina ocupada / no me gusta) -->
+    @if (cambiando(); as ctx) {
+      <div class="fixed inset-0 z-40 bg-black/60" (click)="cerrarCambio()"></div>
+      <div class="fixed inset-x-0 bottom-0 z-50 max-w-xl mx-auto rounded-t-3xl border border-borde bg-panel p-5 pb-8 max-h-[75dvh] overflow-y-auto">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 class="font-bold text-lg leading-tight">¿Ocupada o no te convence?</h3>
+            <p class="text-apagado text-sm mt-0.5">
+              Alternativas equivalentes a <strong class="text-texto">{{ ctx.ej.nombre }}</strong> — misma zona, otro camino.
+            </p>
+          </div>
+          <button class="shrink-0 w-11 h-11 rounded-xl bg-panel2 grid place-items-center text-apagado" (click)="cerrarCambio()">
+            <app-icono nombre="cerrar" clase="w-5 h-5" />
+          </button>
+        </div>
+
+        @if (cargandoAlternativas()) {
+          <p class="text-apagado text-sm py-8 text-center">Buscando alternativas…</p>
+        } @else {
+          <ul class="mt-4 list-none space-y-1">
+            @for (alt of alternativas(); track alt.id) {
+              <li>
+                <button class="w-full flex gap-3 items-center py-2 px-2 rounded-xl active:bg-panel2 text-left"
+                  (click)="elegirAlternativa(alt)">
+                  @if (alt.video) {
+                    <video class="w-16 h-16 rounded-lg object-cover bg-fondo shrink-0"
+                      [src]="alt.video" [poster]="alt.imagen ?? ''" autoplay loop muted playsinline></video>
+                  } @else if (alt.imagen) {
+                    <img class="w-16 h-16 rounded-lg object-cover bg-fondo shrink-0" [src]="alt.imagen" [alt]="alt.nombre" loading="lazy" />
+                  }
+                  <span class="flex-1 font-medium leading-tight">{{ alt.nombre }}</span>
+                  <app-icono nombre="intercambio" clase="w-4 h-4 text-acento shrink-0" />
+                </button>
+              </li>
+            } @empty {
+              <p class="text-apagado text-sm py-6 text-center">No encontramos más alternativas en esta categoría.</p>
+            }
+          </ul>
+          <button class="btn-secundario" (click)="otrasOpciones()">Ver otras opciones</button>
+        }
+      </div>
+    }
   } @else {
     <section class="text-center pt-8">
       <app-icono nombre="bolt" clase="w-16 h-16 mx-auto mb-5 text-acento" />
